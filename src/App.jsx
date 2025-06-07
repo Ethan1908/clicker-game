@@ -156,7 +156,20 @@ const exportSave = () => {
     timestamp: Date.now()
   };
 
-  const importSave = (event) => {
+  // Création d'un fichier JSON téléchargeable
+  const blob = new Blob([JSON.stringify(saveData, null, 2)], { type: 'application/json' });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = `clicker-save-${new Date().toISOString().slice(0, 10)}.json`;
+  document.body.appendChild(a);
+  a.click();
+  document.body.removeChild(a);
+  URL.revokeObjectURL(url);
+};
+
+// Déplacez importSave ici, au même niveau que exportSave
+const importSave = (event) => {
   const file = event.target.files[0];
   if (!file) return;
 
@@ -196,18 +209,6 @@ const exportSave = () => {
     }
   };
   reader.readAsText(file);
-};
-
-  // Création d'un fichier JSON téléchargeable
-  const blob = new Blob([JSON.stringify(saveData, null, 2)], { type: 'application/json' });
-  const url = URL.createObjectURL(blob);
-  const a = document.createElement('a');
-  a.href = url;
-  a.download = `clicker-save-${new Date().toISOString().slice(0, 10)}.json`;
-  document.body.appendChild(a);
-  a.click();
-  document.body.removeChild(a);
-  URL.revokeObjectURL(url);
 };
 
   return (
