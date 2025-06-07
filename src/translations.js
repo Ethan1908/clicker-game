@@ -18,6 +18,12 @@ export const translations = {
     importSave: "Importer",
     importConfirm: "Remplacer votre progression actuelle par cette sauvegarde?",
     importError: "Sauvegarde invalide!",
+    buy: "Acheter",
+    activate: "Activer",
+    active: "Actif!",
+    level: "Niveau",
+    prestigeUpgrades: "Améliorations de Prestige",
+    clickPower: "Force de clic",
     lastSave: "Dernière sauvegarde"
   },
   es: {
@@ -39,6 +45,12 @@ export const translations = {
     importSave: "Importar",
     importConfirm: "¿Reemplazar tu progreso actual con esta guardado?",
     importError: "¡Guardado inválido!",
-    lastSave: "Último guardado"
+    lastSave: "Último guardado",
+    buy: "Comprar",
+    activate: "Activar",
+    active: "¡Activo!",
+    level: "Nivel",
+    prestigeUpgrades: "Mejoras de Prestigio",
+    clickPower: "Poder de clic"
   }
 };

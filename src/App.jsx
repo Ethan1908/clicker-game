@@ -156,6 +156,48 @@ const exportSave = () => {
     timestamp: Date.now()
   };
 
+  const importSave = (event) => {
+  const file = event.target.files[0];
+  if (!file) return;
+
+  const reader = new FileReader();
+  reader.onload = (e) => {
+    try {
+      const saveData = JSON.parse(e.target.result);
+      
+      // Validation basique de la sauvegarde
+      if (typeof saveData.clicks !== 'number') {
+        alert(t.importError);
+        return;
+      }
+
+      if (window.confirm(t.importConfirm)) {
+        setClicks(saveData.clicks || 0);
+        setClickPower(saveData.clickPower || 1);
+        setAutoClickers(saveData.autoClickers || 0);
+        setUpgrades(saveData.upgrades || {
+          multiplicateur: { level: 1, cost: 50 },
+          goldenClick: { active: false, duration: 10 },
+          prestige: {
+            clickPower: { level: 0, cost: 100 },
+            autoClicker: { level: 0, cost: 200 },
+            goldenTime: { level: 0, cost: 300 }
+          }
+        });
+        setPrestigeLevel(saveData.prestigeLevel || 0);
+        setPrestigePoints(saveData.prestigePoints || 0);
+        setLanguage(saveData.language || 'fr');
+        setDarkMode(saveData.darkMode || false);
+        setLastSaveTime(new Date().toLocaleTimeString());
+      }
+    } catch (error) {
+      console.error("Erreur d'import:", error);
+      alert(t.importError);
+    }
+  };
+  reader.readAsText(file);
+};
+
   // Création d'un fichier JSON téléchargeable
   const blob = new Blob([JSON.stringify(saveData, null, 2)], { type: 'application/json' });
   const url = URL.createObjectURL(blob);
