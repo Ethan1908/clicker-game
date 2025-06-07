@@ -6,14 +6,19 @@ export const translations = {
     goldenEffect: "GOLDEN!",
     prestigeTitle: "Prestige",
     prestigeDesc: "Réinitialise tout pour des bonus permanents!",
-    rebirth: "Réincarnation",
+    rebirth: "Renaissance",
     shopTitle: "Boutique",
     autoClicker: "Auto-Clicker",
     quantity: "Quantité",
     multiplier: "Multiplicateur",
     goldenClick: "Golden Click",
     duration: "de x5 puissance",
-    languageToggle: "FR/ES"
+    languageToggle: "FR/ES",
+    exportSave: "Exporter",
+    importSave: "Importer",
+    importConfirm: "Remplacer votre progression actuelle par cette sauvegarde?",
+    importError: "Sauvegarde invalide!",
+    lastSave: "Dernière sauvegarde"
   },
   es: {
     gameTitle: "Juego de Clicks Pro",
@@ -29,6 +34,11 @@ export const translations = {
     multiplier: "Multiplicador",
     goldenClick: "Click Dorado",
     duration: "de x5 potencia",
-    languageToggle: "ES/FR"
+    languageToggle: "ES/FR",
+    exportSave: "Exportar",
+    importSave: "Importar",
+    importConfirm: "¿Reemplazar tu progreso actual con esta guardado?",
+    importError: "¡Guardado inválido!",
+    lastSave: "Último guardado"
   }
 };

@@ -392,3 +392,32 @@ h2, h3 {
   padding: 0.5rem 1rem;
   font-size: 0.9rem;
 }
+
+.save-status {
+  position: fixed;
+  bottom: 10px;
+  right: 10px;
+  background: rgba(0, 0, 0, 0.7);
+  color: white;
+  padding: 5px 10px;
+  border-radius: 5px;
+  font-size: 0.8rem;
+}
+
+.dark .save-status {
+  background: rgba(255, 255, 255, 0.2);
+}
+
+.settings-buttons {
+  position: fixed;
+  top: 20px;
+  right: 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  z-index: 100;
+}
+
+.settings-buttons button, .settings-buttons label {
+  margin: 0;
+}

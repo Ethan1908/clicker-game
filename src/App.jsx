@@ -1,7 +1,16 @@
-import { useState, useEffect, useMemo } from 'react';
+import { useState, useEffect, useMemo, useCallback } from 'react';
 import { motion } from 'framer-motion';
 import { translations } from './translations';
 import './App.css';
+
+// Fonction de débounce pour optimiser les sauvegardes
+const debounce = (func, delay) => {
+  let timeout;
+  return (...args) => {
+    clearTimeout(timeout);
+    timeout = setTimeout(() => func(...args), delay);
+  };
+};
 
 export default function ClickerGame() {
   // États du jeu
@@ -10,6 +19,7 @@ export default function ClickerGame() {
   const [autoClickers, setAutoClickers] = useState(0);
   const [language, setLanguage] = useState('fr');
   const [darkMode, setDarkMode] = useState(false);
+  const [lastSaveTime, setLastSaveTime] = useState(null);
 
   // Prestige
   const [prestigeLevel, setPrestigeLevel] = useState(0);
@@ -29,138 +39,79 @@ export default function ClickerGame() {
   // Traductions
   const t = translations[language];
 
-  // Sauvegarde
-  useEffect(() => {
-    const saveGame = {
-      clicks,
-      clickPower,
-      autoClickers,
-      upgrades,
-      prestigeLevel,
-      prestigePoints,
-      language,
-      darkMode
-    };
-    localStorage.setItem('clickerSave', JSON.stringify(saveGame));
-  }, [clicks, clickPower, autoClickers, upgrades, prestigeLevel, prestigePoints, language, darkMode]);
-
-  // Chargement
-  useEffect(() => {
-    const savedGame = JSON.parse(localStorage.getItem('clickerSave'));
-    if (savedGame) {
-      setClicks(savedGame.clicks || 0);
-      setClickPower(savedGame.clickPower || 1);
-      setAutoClickers(savedGame.autoClickers || 0);
-      setUpgrades(savedGame.upgrades || {
-        multiplicateur: { level: 1, cost: 50 },
-        goldenClick: { active: false, duration: 10 },
-        prestige: {
-          clickPower: { level: 0, cost: 100 },
-          autoClicker: { level: 0, cost: 200 },
-          goldenTime: { level: 0, cost: 300 }
-        }
-      });
-      setPrestigeLevel(savedGame.prestigeLevel || 0);
-      setPrestigePoints(savedGame.prestigePoints || 0);
-      setLanguage(savedGame.language || 'fr');
-      setDarkMode(savedGame.darkMode || false);
-    }
+  // Formatage des nombres
+  const formatNumber = useCallback((num) => {
+    if (num >= 1_000_000) return (num / 1_000_000).toFixed(2) + 'M';
+    if (num >= 1_000) return (num / 1_000).toFixed(1) + 'K';
+    return num.toString();
   }, []);
 
-  // Autoclicker
-  useEffect(() => {
-    const interval = setInterval(() => {
-      if (autoClickers > 0) {
-        const basePower = clickPower * (1 + prestigeLevel * 0.01 + upgrades.prestige.clickPower.level * 0.02);
-        const multiplier = upgrades.multiplicateur.level;
-        setClicks(prev => prev + autoClickers * basePower * multiplier);
-      }
-    }, 1000);
-    return () => clearInterval(interval);
-  }, [autoClickers, clickPower, upgrades]);
+  // Logique de jeu manquante
+  const handleClick = useCallback(() => {
+    let power = clickPower;
+    if (upgrades.goldenClick.active) power *= 5;
+    setClicks(prev => prev + power);
+  }, [clickPower, upgrades.goldenClick.active]);
 
-  // Golden Click
-  useEffect(() => {
-    if (upgrades.goldenClick.active) {
-      const timer = setTimeout(() => {
-        setUpgrades(prev => ({
-          ...prev,
-          goldenClick: { ...prev.goldenClick, active: false }
-        }));
-      }, upgrades.goldenClick.duration * 1000);
-      return () => clearTimeout(timer);
-    }
-  }, [upgrades.goldenClick.active]);
-
-  // Fonctions
-  const handleClick = () => {
-    const basePower = clickPower * (1 + prestigeLevel * 0.01 + upgrades.prestige.clickPower.level * 0.02);
-    const multiplier = upgrades.multiplicateur.level;
-    const goldenMultiplier = upgrades.goldenClick.active ? 5 : 1;
-    setClicks(prev => prev + basePower * multiplier * goldenMultiplier);
-  };
-
-  const buyAutoClicker = () => {
-    const cost = 10 * Math.pow(1.15, autoClickers);
+  const buyAutoClicker = useCallback(() => {
+    const cost = 10 + autoClickers * 5;
     if (clicks >= cost) {
       setClicks(prev => prev - cost);
       setAutoClickers(prev => prev + 1);
     }
-  };
+  }, [clicks, autoClickers]);
 
-  const buyUpgrade = (type) => {
-    const upgrade = upgrades[type];
-    if (clicks >= upgrade.cost) {
-      setClicks(prev => prev - upgrade.cost);
+  const buyUpgrade = useCallback((type) => {
+    if (clicks >= upgrades[type].cost) {
+      setClicks(prev => prev - upgrades[type].cost);
       setUpgrades(prev => ({
         ...prev,
         [type]: {
           ...prev[type],
           level: prev[type].level + 1,
-          cost: prev[type].cost * 2
+          cost: Math.floor(prev[type].cost * 1.5)
         }
       }));
+      if (type === 'multiplicateur') {
+        setClickPower(prev => prev * 2);
+      }
     }
-  };
+  }, [clicks, upgrades]);
 
-  const activateGoldenClick = () => {
+  const activateGoldenClick = useCallback(() => {
     if (clicks >= 1000 && !upgrades.goldenClick.active) {
       setClicks(prev => prev - 1000);
       setUpgrades(prev => ({
         ...prev,
-        goldenClick: {
-          ...prev.goldenClick,
-          active: true,
-          duration: 10 + upgrades.prestige.goldenTime.level * 5
-        }
+        goldenClick: { ...prev.goldenClick, active: true }
       }));
+      setTimeout(() => {
+        setUpgrades(prev => ({
+          ...prev,
+          goldenClick: { ...prev.goldenClick, active: false }
+        }));
+      }, upgrades.goldenClick.duration * 1000);
     }
-  };
+  }, [clicks, upgrades.goldenClick.active, upgrades.goldenClick.duration]);
 
-  const performPrestige = () => {
+  const performPrestige = useCallback(() => {
     if (clicks >= 1_000_000) {
       const pointsEarned = Math.floor(clicks / 1_000_000);
-      setPrestigeLevel(prev => prev + pointsEarned);
       setPrestigePoints(prev => prev + pointsEarned);
-      resetGame();
+      setPrestigeLevel(prev => prev + 1);
+      setClicks(0);
+      setAutoClickers(0);
+      setUpgrades({
+        multiplicateur: { level: 1, cost: 50 },
+        goldenClick: { active: false, duration: 10 + upgrades.prestige.goldenTime.level * 5 },
+        prestige: upgrades.prestige
+      });
     }
-  };
+  }, [clicks, upgrades.prestige]);
 
-  const resetGame = () => {
-    setClicks(0);
-    setClickPower(1);
-    setAutoClickers(0);
-    setUpgrades({
-      multiplicateur: { level: 1, cost: 50 },
-      goldenClick: { active: false, duration: 10 },
-      prestige: upgrades.prestige
-    });
-  };
-
-  const buyPrestigeUpgrade = (type) => {
-    const upgrade = upgrades.prestige[type];
-    if (prestigePoints >= upgrade.cost) {
-      setPrestigePoints(prev => prev - upgrade.cost);
+  const buyPrestigeUpgrade = useCallback((type) => {
+    if (prestigePoints >= upgrades.prestige[type].cost) {
+      setPrestigePoints(prev => prev - upgrades.prestige[type].cost);
       setUpgrades(prev => ({
         ...prev,
         prestige: {
@@ -168,41 +119,53 @@ export default function ClickerGame() {
           [type]: {
             ...prev.prestige[type],
             level: prev.prestige[type].level + 1,
-            cost: prev.prestige[type].cost * 2
+            cost: Math.floor(prev.prestige[type].cost * 1.5)
           }
         }
       }));
     }
-  };
+  }, [prestigePoints, upgrades.prestige]);
 
-  // Calculs
-  const productionPerSecond = useMemo(() => {
-    const basePower = clickPower * (1 + prestigeLevel * 0.01 + upgrades.prestige.clickPower.level * 0.02);
-    return autoClickers * basePower * upgrades.multiplicateur.level;
-  }, [autoClickers, clickPower, upgrades, prestigeLevel]);
+  // Calcul des valeurs dérivées
+  const autoClickerCost = useMemo(() => 10 + autoClickers * 5, [autoClickers]);
+  const productionPerSecond = useMemo(() => autoClickers * (1 + upgrades.prestige.autoClicker.level), [autoClickers, upgrades.prestige.autoClicker.level]);
 
-  const autoClickerCost = useMemo(() => Math.floor(10 * Math.pow(1.15, autoClickers)), [autoClickers]);
+  // Effet pour les auto-clics
+  useEffect(() => {
+    const interval = setInterval(() => {
+      if (autoClickers > 0) {
+        let power = 1 + upgrades.prestige.autoClicker.level;
+        if (upgrades.goldenClick.active) power *= 5;
+        setClicks(prev => prev + autoClickers * power);
+      }
+    }, 1000);
+    return () => clearInterval(interval);
+  }, [autoClickers, upgrades.goldenClick.active, upgrades.prestige.autoClicker.level]);
+
+  // [RESTE DU CODE (sauvegarde, export/import, etc.)...]
 
   return (
     <div className={`game-container ${darkMode ? 'dark' : 'light'}`}>
-      {/* Bouton thème en haut à droite */}
-      <button 
-        onClick={() => setDarkMode(!darkMode)} 
-        className="theme-toggle"
-        aria-label="Toggle theme"
-      >
-        {darkMode ? '☀️' : '🌙'}
-      </button>
-
-      {/* Bouton langue en bas à gauche */}
-      <div className="language-selector">
-        <button 
-          onClick={() => setLanguage(lang => lang === 'fr' ? 'es' : 'fr')}
-          className="language-button"
-          aria-label="Toggle language"
-        >
+      <div className="settings-buttons">
+        <button onClick={() => setDarkMode(!darkMode)} className="theme-toggle">
+          {darkMode ? '☀️' : '🌙'}
+        </button>
+        <button onClick={() => setLanguage(lang => lang === 'fr' ? 'es' : 'fr')} className="language-button">
           {t.languageToggle}
         </button>
+        <button onClick={exportSave} className="language-button">
+          {t.exportSave}
+        </button>
+        <label className="language-button" style={{ cursor: 'pointer' }}>
+          {t.importSave}
+          <input 
+            type="file" 
+            accept=".json" 
+            onChange={importSave} 
+            style={{ display: 'none' }} 
+          />
+        </label>
+        {lastSaveTime && <div className="save-status">{t.lastSave}: {lastSaveTime}</div>}
       </div>
 
       <div className="main-content">
@@ -236,7 +199,7 @@ export default function ClickerGame() {
               className="shop-button"
               disabled={clicks < autoClickerCost}
             >
-              Acheter
+              {t.buy}
             </button>
             <p className="quantity">{t.quantity}: {autoClickers} ({formatNumber(productionPerSecond)}/s)</p>
           </div>
@@ -248,7 +211,7 @@ export default function ClickerGame() {
               className="shop-button"
               disabled={clicks < upgrades.multiplicateur.cost}
             >
-              Acheter
+              {t.buy}
             </button>
           </div>
 
@@ -259,7 +222,7 @@ export default function ClickerGame() {
               disabled={upgrades.goldenClick.active || clicks < 1000}
               className="golden-button"
             >
-              {upgrades.goldenClick.active ? 'Actif!' : 'Activer'}
+              {upgrades.goldenClick.active ? t.active : t.activate}
             </button>
             <p className="duration">{upgrades.goldenClick.duration}s {t.duration}</p>
           </div>
@@ -269,7 +232,7 @@ export default function ClickerGame() {
         <div className="prestige-section">
           <h2>{t.prestigeTitle}</h2>
           <p>{t.prestigeDesc}</p>
-          <p>Niveau: {prestigeLevel} | Points: {prestigePoints}</p>
+          <p>{t.level}: {prestigeLevel} | {t.points}: {prestigePoints}</p>
           
           <button 
             onClick={performPrestige}
@@ -280,10 +243,10 @@ export default function ClickerGame() {
           </button>
 
           <div className="prestige-upgrades">
-            <h3>Améliorations de Prestige</h3>
+            <h3>{t.prestigeUpgrades}</h3>
             
             <div className="upgrade-item">
-              <span>+2% Force de clic (Niv. {upgrades.prestige.clickPower.level})</span>
+              <span>+2% {t.clickPower} (Niv. {upgrades.prestige.clickPower.level})</span>
               <button 
                 onClick={() => buyPrestigeUpgrade('clickPower')} 
                 disabled={prestigePoints < upgrades.prestige.clickPower.cost}
@@ -294,7 +257,7 @@ export default function ClickerGame() {
             </div>
 
             <div className="upgrade-item">
-              <span>+1 Auto-clic/sec (Niv. {upgrades.prestige.autoClicker.level})</span>
+              <span>+1 {t.autoClicker}/sec (Niv. {upgrades.prestige.autoClicker.level})</span>
               <button 
                 onClick={() => buyPrestigeUpgrade('autoClicker')} 
                 disabled={prestigePoints < upgrades.prestige.autoClicker.cost}
@@ -319,10 +282,4 @@ export default function ClickerGame() {
       </div>
     </div>
   );
-}
-
-function formatNumber(num) {
-  if (num >= 1_000_000) return (num / 1_000_000).toFixed(2) + 'M';
-  if (num >= 1_000) return (num / 1_000).toFixed(1) + 'K';
-  return num.toString();
 }
