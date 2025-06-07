@@ -142,7 +142,31 @@ export default function ClickerGame() {
     return () => clearInterval(interval);
   }, [autoClickers, upgrades.goldenClick.active, upgrades.prestige.autoClicker.level]);
 
-  // [RESTE DU CODE (sauvegarde, export/import, etc.)...]
+const exportSave = () => {
+  const saveData = {
+    version: 1.1,
+    clicks,
+    clickPower,
+    autoClickers,
+    upgrades,
+    prestigeLevel,
+    prestigePoints,
+    language,
+    darkMode,
+    timestamp: Date.now()
+  };
+
+  // Création d'un fichier JSON téléchargeable
+  const blob = new Blob([JSON.stringify(saveData, null, 2)], { type: 'application/json' });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = `clicker-save-${new Date().toISOString().slice(0, 10)}.json`;
+  document.body.appendChild(a);
+  a.click();
+  document.body.removeChild(a);
+  URL.revokeObjectURL(url);
+};
 
   return (
     <div className={`game-container ${darkMode ? 'dark' : 'light'}`}>
