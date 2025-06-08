@@ -56,7 +56,7 @@ export default function ClickerGame() {
   }, [clickPower, upgrades.goldenClick.active]);
 
   const buyAutoClicker = useCallback(() => {
-    const cost = 10 + autoClickers * 10;
+    const cost = 10 + autoClickers * 5;
     if (clicks >= cost) {
       setClicks(prev => prev - cost);
       setAutoClickers(prev => prev + 1);
