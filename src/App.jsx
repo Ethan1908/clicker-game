@@ -41,6 +41,7 @@ export default function ClickerGame() {
 
   // Formatage des nombres
   const formatNumber = useCallback((num) => {
+    if (num >= 1_000_000_000) return (num / 1_000_000_000).toFixed(3) + 'B';
     if (num >= 1_000_000) return (num / 1_000_000).toFixed(2) + 'M';
     if (num >= 1_000) return (num / 1_000).toFixed(1) + 'K';
     return num.toString();
@@ -54,7 +55,7 @@ export default function ClickerGame() {
   }, [clickPower, upgrades.goldenClick.active]);
 
   const buyAutoClicker = useCallback(() => {
-    const cost = 10 + autoClickers * 5;
+    const cost = 10 + autoClickers * 5 + autoClickers*0.2;
     if (clicks >= cost) {
       setClicks(prev => prev - cost);
       setAutoClickers(prev => prev + 1);
@@ -127,7 +128,7 @@ export default function ClickerGame() {
   }, [prestigePoints, upgrades.prestige]);
 
   // Calcul des valeurs dérivées
-  const autoClickerCost = useMemo(() => 10 + autoClickers * 5, [autoClickers]);
+  const autoClickerCost = useMemo(() => 10 + autoClickers * 5 + autoClickers*0.2, [autoClickers]);
   const productionPerSecond = useMemo(() => autoClickers * (1 + upgrades.prestige.autoClicker.level), [autoClickers, upgrades.prestige.autoClicker.level]);
 
   // Effet pour les auto-clics
