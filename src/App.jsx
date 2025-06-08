@@ -55,7 +55,7 @@ export default function ClickerGame() {
   }, [clickPower, upgrades.goldenClick.active]);
 
   const buyAutoClicker = useCallback(() => {
-    const cost = 10 + autoClickers * 5 + autoClickers*0.2;
+    const cost = 10 + autoClickers * 10;
     if (clicks >= cost) {
       setClicks(prev => prev - cost);
       setAutoClickers(prev => prev + 1);
@@ -128,7 +128,7 @@ export default function ClickerGame() {
   }, [prestigePoints, upgrades.prestige]);
 
   // Calcul des valeurs dérivées
-  const autoClickerCost = useMemo(() => 10 + autoClickers * 5 + autoClickers*0.2, [autoClickers]);
+  const autoClickerCost = useMemo(() => 10 + autoClickers * 10, [autoClickers]);
   const productionPerSecond = useMemo(() => autoClickers * (1 + upgrades.prestige.autoClicker.level), [autoClickers, upgrades.prestige.autoClicker.level]);
 
   // Effet pour les auto-clics
