@@ -41,6 +41,7 @@ export default function ClickerGame() {
 
   // Formatage des nombres
   const formatNumber = useCallback((num) => {
+    if (num >= 1_000_000_000_000) return (num / 1_000_000_000_000).toFixed(4) + 'T';
     if (num >= 1_000_000_000) return (num / 1_000_000_000).toFixed(3) + 'B';
     if (num >= 1_000_000) return (num / 1_000_000).toFixed(2) + 'M';
     if (num >= 1_000) return (num / 1_000).toFixed(1) + 'K';
@@ -129,7 +130,7 @@ export default function ClickerGame() {
   }, [prestigePoints, upgrades.prestige]);
 
   // Calcul des valeurs dérivées
-  const autoClickerCost = useMemo(() => 10 + autoClickers * 10, [autoClickers]);
+  const autoClickerCost = useMemo(() => 10 + autoClickers * 5, [autoClickers]);
   const productionPerSecond = useMemo(() => autoClickers * (1 + upgrades.prestige.autoClicker.level), [autoClickers, upgrades.prestige.autoClicker.level]);
 
   // Effet pour les auto-clics
@@ -352,4 +353,3 @@ const importSave = (event) => {
     </div>
   );
 }   
-
