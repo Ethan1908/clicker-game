@@ -3,15 +3,6 @@ import { motion } from 'framer-motion';
 import { translations } from './translations';
 import './App.css';
 
-// Fonction de débounce pour optimiser les sauvegardes
-const debounce = (func, delay) => {
-  let timeout;
-  return (...args) => {
-    clearTimeout(timeout);
-    timeout = setTimeout(() => func(...args), delay);
-  };
-};
-
 export default function ClickerGame() {
   // États du jeu
   const [clicks, setClicks] = useState(0);
@@ -20,6 +11,7 @@ export default function ClickerGame() {
   const [language, setLanguage] = useState('fr');
   const [darkMode, setDarkMode] = useState(false);
   const [lastSaveTime, setLastSaveTime] = useState(null);
+  const [saveFlash, setSaveFlash] = useState(false);
 
   // Prestige
   const [prestigeLevel, setPrestigeLevel] = useState(0);
@@ -48,7 +40,7 @@ export default function ClickerGame() {
     return num.toString();
   }, []);
 
-  // Logique de jeu manquante
+  // Logique de jeu
   const handleClick = useCallback(() => {
     let power = clickPower;
     if (upgrades.goldenClick.active) power *= 5;
@@ -71,7 +63,7 @@ export default function ClickerGame() {
         [type]: {
           ...prev[type],
           level: prev[type].level + 1,
-          cost: Math.floor(prev[type].cost * 3)
+          cost: Math.floor(prev[type].cost * 2.5)
         }
       }));
       if (type === 'multiplicateur') {
@@ -145,113 +137,152 @@ export default function ClickerGame() {
     return () => clearInterval(interval);
   }, [autoClickers, upgrades.goldenClick.active, upgrades.prestige.autoClicker.level]);
 
-// Fonction pour encoder les données en base64
-const encodeSave = (data) => {
-  const str = Object.entries(data).map(([key, val]) => `${key}:${val}`).join('|');
-  return btoa(unescape(encodeURIComponent(str)));
-};
+  // Système de sauvegarde
+  const SAVE_KEY = 'clickerSave_v3';
 
-// Fonction pour décoder depuis base64
-const decodeSave = (encoded) => {
-  try {
-    const str = decodeURIComponent(escape(atob(encoded)));
-    return Object.fromEntries(str.split('|').map(item => {
-      const [key, val] = item.split(':');
-      return [key, isNaN(val) ? val : Number(val)];
-    }));
-  } catch {
-    return null;
-  }
-};
-
-// Dans le composant principal
-const SAVE_KEY = 'clickerGameSave_v2';
-
-const saveGame = useCallback(() => {
-  const saveData = {
-    v: 1, // version
-    c: clicks,
-    cp: clickPower,
-    ac: autoClickers,
-    pl: prestigeLevel,
-    pp: prestigePoints,
-    l: language,
-    dm: darkMode ? 1 : 0,
-    ts: Date.now()
+  const compressData = (data) => {
+    return Object.entries(data)
+      .map(([key, val]) => `${key}=${val}`)
+      .join(';');
   };
-  
-  // Ajouter les upgrades de manière compacte
-  saveData.ml = upgrades.multiplicateur.level;
-  saveData.mc = upgrades.multiplicateur.cost;
-  saveData.gc = upgrades.goldenClick.active ? 1 : 0;
-  saveData.gd = upgrades.goldenClick.duration;
-  saveData.pcp = upgrades.prestige.clickPower.level;
-  saveData.pac = upgrades.prestige.autoClicker.level;
-  saveData.pgt = upgrades.prestige.goldenTime.level;
 
-  localStorage.setItem(SAVE_KEY, encodeSave(saveData));
-  setLastSaveTime(new Date().toLocaleTimeString());
-}, [/* toutes les dépendances */]);
+  const decompressData = (str) => {
+    return Object.fromEntries(
+      str.split(';').map(item => {
+        const [key, val] = item.split('=');
+        return [key, isNaN(val) ? val : Number(val)];
+      })
+    );
+  };
 
-const loadGame = useCallback(() => {
-  const saved = localStorage.getItem(SAVE_KEY);
-  if (!saved) return false;
-  // Dans loadGame()
-    if (saveData.v !== 1) {
-      console.error("Version de sauvegarde incompatible");
+  const saveGame = useCallback(() => {
+    const saveData = {
+      v: 2, // version
+      c: clicks,
+      cp: clickPower,
+      ac: autoClickers,
+      pl: prestigeLevel,
+      pp: prestigePoints,
+      l: language,
+      dm: darkMode ? 1 : 0,
+      ml: upgrades.multiplicateur.level,
+      mc: upgrades.multiplicateur.cost,
+      gc: upgrades.goldenClick.active ? 1 : 0,
+      gd: upgrades.goldenClick.duration,
+      pcp: upgrades.prestige.clickPower.level,
+      pac: upgrades.prestige.autoClicker.level,
+      pgt: upgrades.prestige.goldenTime.level,
+      ts: Date.now()
+    };
+
+    localStorage.setItem(SAVE_KEY, compressData(saveData));
+    setLastSaveTime(new Date().toLocaleTimeString());
+    setSaveFlash(true);
+    setTimeout(() => setSaveFlash(false), 1000);
+  }, [clicks, clickPower, autoClickers, prestigeLevel, prestigePoints, language, darkMode, upgrades]);
+
+  const loadGame = useCallback(() => {
+    const saved = localStorage.getItem(SAVE_KEY);
+    if (!saved) return false;
+
+    try {
+      const saveData = decompressData(saved);
+      
+      if (saveData.v !== 2) {
+        console.error("Version incompatible");
+        return false;
+      }
+
+      if (saveData.ts && Date.now() - saveData.ts > 30 * 24 * 60 * 60 * 1000) {
+        if (!confirm(t.oldSaveWarning || "Sauvegarde ancienne. Charger quand même ?")) {
+          return false;
+        }
+      }
+
+      setClicks(saveData.c || 0);
+      setClickPower(saveData.cp || 1);
+      setAutoClickers(saveData.ac || 0);
+      setPrestigeLevel(saveData.pl || 0);
+      setPrestigePoints(saveData.pp || 0);
+      setLanguage(saveData.l || 'fr');
+      setDarkMode(saveData.dm === 1);
+
+      setUpgrades({
+        multiplicateur: {
+          level: saveData.ml || 1,
+          cost: saveData.mc || 50
+        },
+        goldenClick: {
+          active: saveData.gc === 1,
+          duration: saveData.gd || 10
+        },
+        prestige: {
+          clickPower: { 
+            level: saveData.pcp || 0, 
+            cost: 100 * Math.pow(1.5, saveData.pcp || 0) 
+          },
+          autoClicker: { 
+            level: saveData.pac || 0, 
+            cost: 200 * Math.pow(1.5, saveData.pac || 0) 
+          },
+          goldenTime: { 
+            level: saveData.pgt || 0, 
+            cost: 300 * Math.pow(1.5, saveData.pgt || 0) 
+          }
+        }
+      });
+
+      return true;
+    } catch (error) {
+      console.error("Erreur de chargement:", error);
       return false;
     }
+  }, [t.oldSaveWarning]);
 
-    if (saveData.ts && Date.now() - saveData.ts > 30 * 24 * 60 * 60 * 1000) {
-      if (!confirm("Sauvegarde ancienne (plus de 30 jours). Charger quand même ?")) {
-        return false;
-      };
-    }
+  const exportSave = () => {
+    saveGame();
+    const saved = localStorage.getItem(SAVE_KEY);
+    const blob = new Blob([saved], { type: 'text/plain' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `clicker_save_${new Date().toISOString().slice(0, 10)}.txt`;
+    a.click();
+    URL.revokeObjectURL(url);
+  };
 
-  const saveData = decodeSave(saved);
-  if (!saveData) return false;
+  const importSave = (event) => {
+    const file = event.target.files[0];
+    if (!file) return;
 
-  // Restaurer l'état
-  setClicks(saveData.c || 0);
-  setClickPower(saveData.cp || 1);
-  setAutoClickers(saveData.ac || 0);
-  setPrestigeLevel(saveData.pl || 0);
-  setPrestigePoints(saveData.pp || 0);
-  setLanguage(saveData.l || 'fr');
-  setDarkMode(saveData.dm === 1);
+    const reader = new FileReader();
+    reader.onload = (e) => {
+      try {
+        const data = e.target.result;
+        if (window.confirm(t.importConfirm)) {
+          localStorage.setItem(SAVE_KEY, data);
+          window.location.reload();
+        }
+      } catch {
+        alert(t.importError);
+      }
+    };
+    reader.readAsText(file);
+  };
 
-  setUpgrades({
-    multiplicateur: {
-      level: saveData.ml || 1,
-      cost: saveData.mc || 50
-    },
-    goldenClick: {
-      active: saveData.gc === 1,
-      duration: saveData.gd || 10
-    },
-    prestige: {
-      clickPower: { level: saveData.pcp || 0, cost: 100 * Math.pow(1.5, saveData.pcp || 0) },
-      autoClicker: { level: saveData.pac || 0, cost: 200 * Math.pow(1.5, saveData.pac || 0) },
-      goldenTime: { level: saveData.pgt || 0, cost: 300 * Math.pow(1.5, saveData.pgt || 0) }
-    }
-  });
+  // Sauvegarde automatique
+  useEffect(() => {
+    const timer = setTimeout(saveGame, 3000);
+    return () => clearTimeout(timer);
+  }, [clicks, autoClickers, prestigeLevel, saveGame]);
 
-  return true;
-}, []);
-
-// Sauvegarde automatique avec debounce
-useEffect(() => {
-  const handle = setTimeout(saveGame, 3000);
-  return () => clearTimeout(handle);
-}, [clicks, autoClickers, prestigeLevel, saveGame]);
-
-// Chargement initial
-useEffect(() => {
-  loadGame();
-}, [loadGame]);
+  // Chargement initial
+  useEffect(() => {
+    loadGame();
+  }, [loadGame]);
 
   return (
-    <div className={`game-container ${darkMode ? 'dark' : 'light'}`}>
+    <div className={`game-container ${darkMode ? 'dark' : 'light'} ${saveFlash ? 'save-flash' : ''}`}>
       <div className="settings-buttons">
         <button onClick={() => setDarkMode(!darkMode)} className="theme-toggle">
           {darkMode ? '☀️' : '🌙'}
@@ -266,7 +297,7 @@ useEffect(() => {
           {t.importSave}
           <input 
             type="file" 
-            accept=".json" 
+            accept=".txt,.text" 
             onChange={importSave} 
             style={{ display: 'none' }} 
           />
@@ -277,7 +308,6 @@ useEffect(() => {
       <div className="main-content">
         <h1>{t.gameTitle}</h1>
 
-        {/* Section Clic */}
         <div className="click-section">
           <motion.div className="click-display">
             <span className="points-display">
@@ -294,7 +324,6 @@ useEffect(() => {
           </motion.div>
         </div>
 
-        {/* Boutique */}
         <div className="shop-section">
           <h2>{t.shopTitle}</h2>
           
@@ -334,7 +363,6 @@ useEffect(() => {
           </div>
         </div>
 
-        {/* Prestige */}
         <div className="prestige-section">
           <h2>{t.prestigeTitle}</h2>
           <p>{t.prestigeDesc}</p>
@@ -388,4 +416,4 @@ useEffect(() => {
       </div>
     </div>
   );
-}   
+}

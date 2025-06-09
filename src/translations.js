@@ -23,6 +23,7 @@ export const translations = {
     active: "Actif!",
     level: "Niveau",
     prestigeUpgrades: "Améliorations de Prestige",
+    oldSaveWarning: "Cette sauvegarde a plus de 30 jours. Charger quand même ?",
     clickPower: "Force de clic",
     lastSave: "Dernière sauvegarde"
   },
@@ -51,6 +52,7 @@ export const translations = {
     active: "¡Activo!",
     level: "Nivel",
     prestigeUpgrades: "Mejoras de Prestigio",
+    oldSaveWarning: "Esta guardado tiene más de 30 días. ¿Cargar de todos modos?",
     clickPower: "Poder de clic"
   }
 };
