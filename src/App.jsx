@@ -304,14 +304,14 @@ export default function ClickerGame() {
 
   // Sauvegarde automatique
   useEffect(() => {
-    const timer = setTimeout(saveGame, 3000);
+    const timer = setTimeout(saveGame, 600);
     return () => clearTimeout(timer);
   }, [clicks, autoClickers, prestigeLevel, saveGame]);
 
   // Chargement initial
   useEffect(() => {
     loadGame();
-  }, []); // Chargement unique au montage
+  }, [loadGame]); // Chargement unique au montage
 
   return (
     <div className={`game-container ${darkMode ? 'dark' : 'light'} ${saveFlash ? 'save-flash' : ''}`}>
