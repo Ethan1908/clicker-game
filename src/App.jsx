@@ -8,7 +8,24 @@ export default function ClickerGame() {
   const [clicks, setClicks] = useState(0);
   const [clickPower, setClickPower] = useState(1);
   const [autoClickers, setAutoClickers] = useState(0);
-  const [language, setLanguage] = useState('fr');
+  const [language, setLanguage] = useState(() => {
+    // Charger la langue depuis le localStorage si elle existe
+    const saved = localStorage.getItem('clickerSave_v3');
+    if (saved) {
+      try {
+        const saveData = Object.fromEntries(
+          saved.split(';').map(item => {
+            const [key, val] = item.split('=');
+            return [key, isNaN(val) ? val : Number(val)];
+          })
+        );
+        return saveData.l || 'fr';
+      } catch {
+        return 'fr';
+      }
+    }
+    return 'fr';
+  });
   const [darkMode, setDarkMode] = useState(false);
   const [lastSaveTime, setLastSaveTime] = useState(null);
   const [saveFlash, setSaveFlash] = useState(false);
@@ -163,7 +180,7 @@ export default function ClickerGame() {
       ac: autoClickers,
       pl: prestigeLevel,
       pp: prestigePoints,
-      l: language,
+      l: language, // Inclure la langue actuelle
       dm: darkMode ? 1 : 0,
       ml: upgrades.multiplicateur.level,
       mc: upgrades.multiplicateur.cost,
@@ -199,12 +216,19 @@ export default function ClickerGame() {
         }
       }
 
+      // Ne pas charger la langue depuis la sauvegarde si elle est déjà définie
+      const shouldLoadLanguage = !language;
+      
       setClicks(saveData.c || 0);
       setClickPower(saveData.cp || 1);
       setAutoClickers(saveData.ac || 0);
       setPrestigeLevel(saveData.pl || 0);
       setPrestigePoints(saveData.pp || 0);
-      setLanguage(saveData.l || 'fr');
+      
+      if (shouldLoadLanguage) {
+        setLanguage(saveData.l || 'fr');
+      }
+      
       setDarkMode(saveData.dm === 1);
 
       setUpgrades({
@@ -237,7 +261,7 @@ export default function ClickerGame() {
       console.error("Erreur de chargement:", error);
       return false;
     }
-  }, [t.oldSaveWarning]);
+  }, [t.oldSaveWarning, language]);
 
   const exportSave = () => {
     saveGame();
@@ -270,16 +294,24 @@ export default function ClickerGame() {
     reader.readAsText(file);
   };
 
+  // Fonction de changement de langue
+  const changeLanguage = useCallback(() => {
+    const newLang = language === 'fr' ? 'es' : 'fr';
+    setLanguage(newLang);
+    // Sauvegarder immédiatement après le changement
+    setTimeout(saveGame, 0);
+  }, [language, saveGame]);
+
   // Sauvegarde automatique
   useEffect(() => {
-    const timer = setTimeout(saveGame, 1000);
+    const timer = setTimeout(saveGame, 3000);
     return () => clearTimeout(timer);
   }, [clicks, autoClickers, prestigeLevel, saveGame]);
 
   // Chargement initial
   useEffect(() => {
     loadGame();
-  }, [loadGame]);
+  }, []); // Chargement unique au montage
 
   return (
     <div className={`game-container ${darkMode ? 'dark' : 'light'} ${saveFlash ? 'save-flash' : ''}`}>
@@ -287,7 +319,7 @@ export default function ClickerGame() {
         <button onClick={() => setDarkMode(!darkMode)} className="theme-toggle">
           {darkMode ? '☀️' : '🌙'}
         </button>
-        <button onClick={() => setLanguage(lang => lang === 'fr' ? 'es' : 'fr')} className="language-button">
+        <button onClick={changeLanguage} className="language-button">
           {t.languageToggle}
         </button>
         <button onClick={exportSave} className="language-button">
