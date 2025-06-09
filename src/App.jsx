@@ -102,7 +102,7 @@ export default function ClickerGame() {
       setPrestigePoints(prev => prev + pointsEarned);
       setPrestigeLevel(prev => prev + 1);
       setClicks(0);
-      setClickPower(0);
+      setClickPower(1);
       setAutoClickers(0);
       setUpgrades({
         multiplicateur: { level: 1, cost: 50 },
