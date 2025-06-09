@@ -272,7 +272,7 @@ export default function ClickerGame() {
 
   // Sauvegarde automatique
   useEffect(() => {
-    const timer = setTimeout(saveGame, 400);
+    const timer = setTimeout(saveGame, 600);
     return () => clearTimeout(timer);
   }, [clicks, autoClickers, prestigeLevel, saveGame]);
 

@@ -2,7 +2,7 @@ Mise à jour et correction avenir :
 
 affichage de l'ensemble du shop sur telephone non fonctionelle
 affichage de la traduction etc... mal mise en place sur telephone et pc (mettre dans menu hamburger)
-créer un nouveau systeme de sauvegarde car possibilité de give
+créer un nouveau systeme de sauvegarde car possibilité de give (semi regler)
 ajouter des nouvelle choses à acheter
 créer des zone au bout d'un certain de rebirth
 créer la traduction pour les anglais
