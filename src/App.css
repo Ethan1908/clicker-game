@@ -421,12 +421,3 @@ h2, h3 {
 .settings-buttons button, .settings-buttons label {
   margin: 0;
 }
-
-.save-flash {
-  animation: saveFlash 1s ease;
-}
-
-@keyframes saveFlash {
-  0% { background-color: rgba(76, 175, 80, 0.3); }
-  100% { background-color: transparent; }
-}
