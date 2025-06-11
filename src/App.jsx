@@ -387,7 +387,7 @@ export default function ClickerGame() {
                 disabled={clicks < 1000 || upgrades.goldenClick.active}
                 className="golden-button"
               >
-                {upgrades.goldenClick.active ? t.active : t.activate} (1000)
+                {upgrades.goldenClick.active ? t.active : t.activate} (1K)
               </button>
             </div>
           </div>
