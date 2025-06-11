@@ -63,10 +63,12 @@ export default function ClickerGame() {
 
   // Formatage des nombres
   const formatNumber = useCallback((num) => {
-    if (num >= 1_000_000_000_000) return (num / 1_000_000_000_000).toFixed(4) + 'T';
+    if (num >= 1_000_000_000_000_000_000) return (num / 1_000_000_000_000_000_000).toFixed(3) + 'Qi';    
+    if (num >= 1_000_000_000_000_000) return (num / 1_000_000_000_000_000).toFixed(3) + 'Qad';
+    if (num >= 1_000_000_000_000) return (num / 1_000_000_000_000).toFixed(3) + 'T';
     if (num >= 1_000_000_000) return (num / 1_000_000_000).toFixed(3) + 'B';
-    if (num >= 1_000_000) return (num / 1_000_000).toFixed(2) + 'M';
-    if (num >= 1_000) return (num / 1_000).toFixed(1) + 'K';
+    if (num >= 1_000_000) return (num / 1_000_000).toFixed(3) + 'M';
+    if (num >= 1_000) return (num / 1_000).toFixed(2) + 'K';
     return num.toString();
   }, []);
 
