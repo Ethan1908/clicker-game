@@ -29,6 +29,7 @@ export default function ClickerGame() {
   const [lastSaveTime, setLastSaveTime] = useState(null);
   const [saveFlash, setSaveFlash] = useState(false);
   const [activeTab, setActiveTab] = useState('shop');
+  const [temporaryBoost, setTemporaryBoost] = useState(false);
 
   // Prestige
   const [prestigeLevel, setPrestigeLevel] = useState(0);
@@ -38,11 +39,23 @@ export default function ClickerGame() {
   const [upgrades, setUpgrades] = useState({
     multiplicateur: { level: 1, cost: 50 },
     goldenClick: { active: false, duration: 10 },
+    globalMultiplier: { level: 0, cost: 5000, multiplier: 1.0 },
     prestige: {
       clickPower: { level: 0, cost: 100 },
       autoClicker: { level: 0, cost: 200 },
       goldenTime: { level: 0, cost: 300 }
     }
+  });
+
+  // Investissements
+  const [investments, setInvestments] = useState({
+    bank: { level: 0, cost: 10000, income: 100 },
+    realEstate: { level: 0, cost: 25000, income: 250 }
+  });
+
+  // Compétences
+  const [skills, setSkills] = useState({
+    megaClick: { level: 0, cost: 5000, power: 100, ready: true, cooldown: 30 }
   });
 
   // Traductions
@@ -59,10 +72,11 @@ export default function ClickerGame() {
 
   // Logique de jeu
   const handleClick = useCallback(() => {
-    let power = clickPower;
+    let power = clickPower * upgrades.globalMultiplier.multiplier;
     if (upgrades.goldenClick.active) power *= 5;
+    if (temporaryBoost) power *= 2;
     setClicks(prev => prev + power);
-  }, [clickPower, upgrades.goldenClick.active]);
+  }, [clickPower, upgrades, temporaryBoost]);
 
   const buyAutoClicker = useCallback(() => {
     const cost = 10 + autoClickers * 5;
@@ -86,6 +100,15 @@ export default function ClickerGame() {
       if (type === 'multiplicateur') {
         setClickPower(prev => prev * 2);
       }
+      if (type === 'globalMultiplier') {
+        setUpgrades(prev => ({
+          ...prev,
+          globalMultiplier: {
+            ...prev.globalMultiplier,
+            multiplier: prev.globalMultiplier.multiplier + 0.1
+          }
+        }));
+      }
     }
   }, [clicks, upgrades]);
 
@@ -105,6 +128,71 @@ export default function ClickerGame() {
     }
   }, [clicks, upgrades.goldenClick.active, upgrades.goldenClick.duration]);
 
+  const buyGlobalMultiplier = useCallback(() => {
+    buyUpgrade('globalMultiplier');
+  }, [buyUpgrade]);
+
+  const activateTemporaryBoost = useCallback(() => {
+    if (clicks >= 5000 && !temporaryBoost) {
+      setClicks(prev => prev - 5000);
+      setTemporaryBoost(true);
+      setTimeout(() => setTemporaryBoost(false), 30000);
+    }
+  }, [clicks, temporaryBoost]);
+
+  const buyInvestment = useCallback((type) => {
+    if (clicks >= investments[type].cost) {
+      setClicks(prev => prev - investments[type].cost);
+      setInvestments(prev => ({
+        ...prev,
+        [type]: {
+          ...prev[type],
+          level: prev[type].level + 1,
+          income: Math.floor(prev[type].income * 1.5),
+          cost: Math.floor(prev[type].cost * 2.5)
+        }
+      }));
+    }
+  }, [clicks, investments]);
+
+  const upgradeSkill = useCallback((type) => {
+    if (clicks >= skills[type].cost) {
+      setClicks(prev => prev - skills[type].cost);
+      setSkills(prev => ({
+        ...prev,
+        [type]: {
+          ...prev[type],
+          level: prev[type].level + 1,
+          power: prev[type].power * 2,
+          cost: Math.floor(prev[type].cost * 2.5)
+        }
+      }));
+    }
+  }, [clicks, skills]);
+
+  const useSkill = useCallback((type) => {
+    if (skills[type].ready && skills[type].level > 0) {
+      setClicks(prev => prev + skills[type].power);
+      setSkills(prev => ({
+        ...prev,
+        [type]: {
+          ...prev[type],
+          ready: false
+        }
+      }));
+      
+      setTimeout(() => {
+        setSkills(prev => ({
+          ...prev,
+          [type]: {
+            ...prev[type],
+            ready: true
+          }
+        }));
+      }, skills[type].cooldown * 1000);
+    }
+  }, [skills]);
+
   const performPrestige = useCallback(() => {
     if (clicks >= 1_000_000) {
       const pointsEarned = Math.floor(clicks / 1_000_000);
@@ -116,8 +204,17 @@ export default function ClickerGame() {
       setUpgrades({
         multiplicateur: { level: 1, cost: 50 },
         goldenClick: { active: false, duration: 10 + upgrades.prestige.goldenTime.level * 5 },
+        globalMultiplier: { level: 0, cost: 5000, multiplier: 1.0 },
         prestige: upgrades.prestige
       });
+      setInvestments({
+        bank: { level: 0, cost: 10000, income: 100 },
+        realEstate: { level: 0, cost: 25000, income: 250 }
+      });
+      setSkills({
+        megaClick: { level: 0, cost: 5000, power: 100, ready: true, cooldown: 30 }
+      });
+      setTemporaryBoost(false);
     }
   }, [clicks, upgrades.prestige]);
 
@@ -142,17 +239,36 @@ export default function ClickerGame() {
   const autoClickerCost = useMemo(() => 10 + autoClickers * 5, [autoClickers]);
   const productionPerSecond = useMemo(() => autoClickers * (1 + upgrades.prestige.autoClicker.level), [autoClickers, upgrades.prestige.autoClicker.level]);
 
-  // Effet pour les auto-clics
+  // Effets pour les auto-clics et revenus passifs
   useEffect(() => {
-    const interval = setInterval(() => {
+    const autoClickInterval = setInterval(() => {
       if (autoClickers > 0) {
         let power = 1 + upgrades.prestige.autoClicker.level;
+        power *= upgrades.globalMultiplier.multiplier;
         if (upgrades.goldenClick.active) power *= 5;
+        if (temporaryBoost) power *= 2;
         setClicks(prev => prev + autoClickers * power);
       }
     }, 1000);
-    return () => clearInterval(interval);
-  }, [autoClickers, upgrades.goldenClick.active, upgrades.prestige.autoClicker.level]);
+
+    const incomeInterval = setInterval(() => {
+      let income = 0;
+      if (investments.bank.level > 0) {
+        income += investments.bank.income;
+      }
+      if (investments.realEstate.level > 0) {
+        income += investments.realEstate.income;
+      }
+      if (income > 0) {
+        setClicks(prev => prev + income);
+      }
+    }, 60000);
+
+    return () => {
+      clearInterval(autoClickInterval);
+      clearInterval(incomeInterval);
+    };
+  }, [autoClickers, upgrades, temporaryBoost, investments]);
 
   // Système de sauvegarde
   const SAVE_KEY = 'clickerSave_v3';
@@ -163,18 +279,9 @@ export default function ClickerGame() {
       .join(';');
   };
 
-  const decompressData = (str) => {
-    return Object.fromEntries(
-      str.split(';').map(item => {
-        const [key, val] = item.split('=');
-        return [key, isNaN(val) ? val : Number(val)];
-      })
-    );
-  };
-
   const saveGame = useCallback(() => {
     const saveData = {
-      v: 2,
+      v: 3,
       c: clicks,
       cp: clickPower,
       ac: autoClickers,
@@ -186,6 +293,12 @@ export default function ClickerGame() {
       mc: upgrades.multiplicateur.cost,
       gc: upgrades.goldenClick.active ? 1 : 0,
       gd: upgrades.goldenClick.duration,
+      gm: upgrades.globalMultiplier.level,
+      gmc: upgrades.globalMultiplier.cost,
+      tb: temporaryBoost ? 1 : 0,
+      bk: investments.bank.level,
+      re: investments.realEstate.level,
+      sk: skills.megaClick.level,
       pcp: upgrades.prestige.clickPower.level,
       pac: upgrades.prestige.autoClicker.level,
       pgt: upgrades.prestige.goldenTime.level,
@@ -196,22 +309,22 @@ export default function ClickerGame() {
     setLastSaveTime(new Date().toLocaleTimeString());
     setSaveFlash(true);
     setTimeout(() => setSaveFlash(false), 1000);
-  }, [clicks, clickPower, autoClickers, prestigeLevel, prestigePoints, language, darkMode, upgrades]);
+  }, [clicks, clickPower, autoClickers, prestigeLevel, prestigePoints, language, darkMode, upgrades, temporaryBoost, investments, skills]);
 
   const loadGame = useCallback(() => {
     const saved = localStorage.getItem(SAVE_KEY);
     if (!saved) return false;
 
     try {
-      const saveData = decompressData(saved);
+      const saveData = Object.fromEntries(
+        saved.split(';').map(item => {
+          const [key, val] = item.split('=');
+          return [key, isNaN(val) ? val : Number(val)];
+        })
+      );
       
-      if (saveData.v !== 2) {
-        console.error("Version incompatible");
-        return false;
-      }
-
-      if (saveData.ts && Date.now() - saveData.ts > 30 * 24 * 60 * 60 * 1000) {
-        if (!confirm(t.oldSaveWarning || "Sauvegarde ancienne. Charger quand même ?")) {
+      if (saveData.v !== 3) {
+        if (!confirm(t.oldSaveWarning || "Version incompatible. Charger quand même ?")) {
           return false;
         }
       }
@@ -223,6 +336,7 @@ export default function ClickerGame() {
       setAutoClickers(saveData.ac || 0);
       setPrestigeLevel(saveData.pl || 0);
       setPrestigePoints(saveData.pp || 0);
+      setTemporaryBoost(saveData.tb === 1);
       
       if (shouldLoadLanguage) {
         setLanguage(saveData.l || 'fr');
@@ -239,6 +353,11 @@ export default function ClickerGame() {
           active: saveData.gc === 1,
           duration: saveData.gd || 10
         },
+        globalMultiplier: {
+          level: saveData.gm || 0,
+          cost: saveData.gmc || 5000,
+          multiplier: 1.0 + (saveData.gm || 0) * 0.1
+        },
         prestige: {
           clickPower: { 
             level: saveData.pcp || 0, 
@@ -252,6 +371,29 @@ export default function ClickerGame() {
             level: saveData.pgt || 0, 
             cost: 300 * Math.pow(1.5, saveData.pgt || 0) 
           }
+        }
+      });
+
+      setInvestments({
+        bank: {
+          level: saveData.bk || 0,
+          cost: 10000 * Math.pow(2.5, saveData.bk || 0),
+          income: 100 * Math.pow(1.5, saveData.bk || 0)
+        },
+        realEstate: {
+          level: saveData.re || 0,
+          cost: 25000 * Math.pow(2.5, saveData.re || 0),
+          income: 250 * Math.pow(1.5, saveData.re || 0)
+        }
+      });
+
+      setSkills({
+        megaClick: {
+          level: saveData.sk || 0,
+          cost: 5000 * Math.pow(2.5, saveData.sk || 0),
+          power: 100 * Math.pow(2, saveData.sk || 0),
+          ready: true,
+          cooldown: 30
         }
       });
 
@@ -343,7 +485,7 @@ export default function ClickerGame() {
           </span>
           <motion.button
             onClick={handleClick}
-            className="click-button"
+            className={`click-button ${temporaryBoost ? 'temporary-boost' : ''}`}
             whileTap={{ scale: 0.95 }}
           >
             {t.clickMe}
@@ -390,93 +532,89 @@ export default function ClickerGame() {
                 {upgrades.goldenClick.active ? t.active : t.activate} (1K)
               </button>
             </div>
- 
- {/* Multiplicateur Global */}
-    
-    <div className="shop-item">
-      <h3>Multiplicateur Global</h3>
-      <p>Niveau: {upgrades.globalMultiplier.level}</p>
-      <p>Bonus: x{upgrades.globalMultiplier.multiplier.toFixed(1)}</p>
-      <button 
-        onClick={buyGlobalMultiplier}
-        disabled={clicks < upgrades.globalMultiplier.cost}
-        className="shop-button"
-      >
-        Acheter ({formatNumber(upgrades.globalMultiplier.cost)})
-      </button>
-    </div>
 
-    {/* Boost Temporaire */}
-    <div className="shop-item">
-      <h3>Boost d'énergie</h3>
-      <p>Status: {temporaryBoost ? "ACTIF" : "Prêt"}</p>
-      <button 
-        onClick={activateTemporaryBoost}
-        disabled={clicks < 5000 || temporaryBoost}
-        className="golden-button"
-      >
-        {temporaryBoost ? "En cours..." : "Activer (5000)"}
-      </button>
-    </div>
+            <div className="shop-item">
+              <h3>{t.globalMultiplier}</h3>
+              <p>{t.level}: {upgrades.globalMultiplier.level}</p>
+              <p>Bonus: x{upgrades.globalMultiplier.multiplier.toFixed(1)}</p>
+              <button 
+                onClick={buyGlobalMultiplier}
+                disabled={clicks < upgrades.globalMultiplier.cost}
+                className="shop-button"
+              >
+                {t.buy} ({formatNumber(upgrades.globalMultiplier.cost)})
+              </button>
+            </div>
 
-    {/* Investissements */}
-    <div className="shop-item">
-      <h3>Investissements</h3>
-      <div className="investment-options">
-        <div>
-          <h4>Banque</h4>
-          <p>Niveau: {investments.bank.level}</p>
-          <p>Revenu: {formatNumber(investments.bank.income)}/min</p>
-          <button 
-            onClick={() => buyInvestment('bank')}
-            disabled={clicks < investments.bank.cost}
-            className="shop-button"
-          >
-            Investir ({formatNumber(investments.bank.cost)})
-          </button>
-        </div>
-        <div>
-          <h4>Immobilier</h4>
-          <p>Niveau: {investments.realEstate.level}</p>
-          <p>Revenu: {formatNumber(investments.realEstate.income)}/min</p>
-          <button 
-            onClick={() => buyInvestment('realEstate')}
-            disabled={clicks < investments.realEstate.cost}
-            className="shop-button"
-          >
-            Investir ({formatNumber(investments.realEstate.cost)})
-          </button>
-        </div>
-      </div>
-    </div>
+            <div className="shop-item">
+              <h3>{t.temporaryBoost}</h3>
+              <p>Status: {temporaryBoost ? t.active : t.ready}</p>
+              <button 
+                onClick={activateTemporaryBoost}
+                disabled={clicks < 5000 || temporaryBoost}
+                className="golden-button"
+              >
+                {temporaryBoost ? t.active : `${t.activate} (5K)`}
+              </button>
+            </div>
 
-    {/* Compétences */}
-    <div className="shop-item">
-      <h3>Compétences</h3>
-      <div className="skill-options">
-        <div>
-          <h4>Méga-Clic</h4>
-          <p>Niveau: {skills.megaClick.level}</p>
-          <p>Puissance: {formatNumber(skills.megaClick.power)}</p>
-          <button 
-            onClick={() => upgradeSkill('megaClick')}
-            disabled={clicks < skills.megaClick.cost}
-            className="shop-button"
-          >
-            Améliorer ({formatNumber(skills.megaClick.cost)})
-          </button>
-          <button 
-            onClick={() => useSkill('megaClick')}
-            disabled={!skills.megaClick.ready || skills.megaClick.level === 0}
-            className="golden-button"
-          >
-            {skills.megaClick.ready ? "Utiliser" : "En recharge..."}
-          </button>
-        </div>
-      </div>
-    </div>
-  </div>
-)}
+            <div className="shop-item">
+              <h3>{t.investments}</h3>
+              <div className="investment-options">
+                <div>
+                  <h4>{t.bank}</h4>
+                  <p>{t.level}: {investments.bank.level}</p>
+                  <p>{t.incomePerMin}: {formatNumber(investments.bank.income)}</p>
+                  <button 
+                    onClick={() => buyInvestment('bank')}
+                    disabled={clicks < investments.bank.cost}
+                    className="shop-button"
+                  >
+                    {t.buy} ({formatNumber(investments.bank.cost)})
+                  </button>
+                </div>
+                <div>
+                  <h4>{t.realEstate}</h4>
+                  <p>{t.level}: {investments.realEstate.level}</p>
+                  <p>{t.incomePerMin}: {formatNumber(investments.realEstate.income)}</p>
+                  <button 
+                    onClick={() => buyInvestment('realEstate')}
+                    disabled={clicks < investments.realEstate.cost}
+                    className="shop-button"
+                  >
+                    {t.buy} ({formatNumber(investments.realEstate.cost)})
+                  </button>
+                </div>
+              </div>
+            </div>
+
+            <div className="shop-item">
+              <h3>{t.skills}</h3>
+              <div className="skill-options">
+                <div>
+                  <h4>{t.megaClick}</h4>
+                  <p>{t.level}: {skills.megaClick.level}</p>
+                  <p>Puissance: {formatNumber(skills.megaClick.power)}</p>
+                  <button 
+                    onClick={() => upgradeSkill('megaClick')}
+                    disabled={clicks < skills.megaClick.cost}
+                    className="shop-button"
+                  >
+                    {t.buy} ({formatNumber(skills.megaClick.cost)})
+                  </button>
+                  <button 
+                    onClick={() => useSkill('megaClick')}
+                    disabled={!skills.megaClick.ready || skills.megaClick.level === 0}
+                    className="golden-button"
+                  >
+                    {skills.megaClick.ready ? t.use : `${t.cooldown}...`}
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>
+        )}
+
         {activeTab === 'prestige' && (
           <div className="prestige-section">
             <h2>{t.prestigeTitle}</h2>

@@ -1,12 +1,7 @@
 Mise à jour et correction avenir : 
 
-affichage de l'ensemble du shop sur telephone non fonctionelle
-affichage de la traduction etc... mal mise en place sur telephone et pc (mettre dans menu hamburger)
-créer un nouveau systeme de sauvegarde car possibilité de give (semi regler)
-ajouter des nouvelle choses à acheter
+ajouter des nouvelle choses à acheter (continuelle)
 créer des zone au bout d'un certain de rebirth
-créer la traduction pour les anglais
-ajustement de l'affichage du site (possibilité de metttre en place un menu)
-incorporer des crédit
+créer la traduction en anglais
 fiche de patch au menu pour tenir au courant
 fonctionnalité bonus pour le fondateur disponible par mdp pour verifier des fonctionnalités ajoutées

@@ -559,3 +559,40 @@ body, html {
   margin-top: 5px;
   border-radius: 2px;
 }
+
+/* Styles pour les compétences et investissements */
+.skill-options, .investment-options {
+  display: grid;
+  gap: 1rem;
+}
+
+.skill-options > div, .investment-options > div {
+  background: rgba(0, 0, 0, 0.05);
+  padding: 1rem;
+  border-radius: 8px;
+}
+
+.dark .skill-options > div, 
+.dark .investment-options > div {
+  background: rgba(255, 255, 255, 0.05);
+}
+
+.cooldown-indicator {
+  height: 4px;
+  background: var(--primary);
+  margin-top: 5px;
+  border-radius: 2px;
+  width: 100%;
+  transition: width linear;
+}
+
+/* Effet de boost temporaire */
+.temporary-boost {
+  animation: pulse 1s infinite;
+}
+
+@keyframes pulse {
+  0% { box-shadow: 0 0 5px var(--gold); }
+  50% { box-shadow: 0 0 20px var(--gold); }
+  100% { box-shadow: 0 0 5px var(--gold); }
+}

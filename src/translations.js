@@ -26,7 +26,18 @@ export const translations = {
     prestigeUpgrades: "Améliorations de Prestige",
     oldSaveWarning: "Cette sauvegarde a plus de 30 jours. Charger quand même ?",
     clickPower: "Force de clic",
-    lastSave: "Dernière sauvegarde"
+    lastSave: "Dernière sauvegarde",
+    globalMultiplier: "Multiplicateur Global",
+    temporaryBoost: "Boost d'énergie",
+    investments: "Investissements",
+    bank: "Banque",
+    realEstate: "Immobilier",
+    incomePerMin: "Revenu/min",
+    skills: "Compétences",
+    megaClick: "Méga-Clic",
+    ready: "Prêt",
+    cooldown: "Recharge",
+    use: "Utiliser"
   },
   es: {
     gameTitle: "Juego de Clicks",
@@ -55,6 +66,17 @@ export const translations = {
     level: "Nivel",
     prestigeUpgrades: "Mejoras de Prestigio",
     oldSaveWarning: "Esta guardado tiene más de 30 días. ¿Cargar de todos modos?",
-    clickPower: "Poder de clic"
+    clickPower: "Poder de clic",
+    globalMultiplier: "Multiplicador Global",
+    temporaryBoost: "Boost de energía",
+    investments: "Inversiones",
+    bank: "Banco",
+    realEstate: "Bienes Raíces",
+    incomePerMin: "Ingreso/min",
+    skills: "Habilidades",
+    megaClick: "Mega-Clic",
+    ready: "Listo",
+    cooldown: "Recarga",
+    use: "Usar"
   }
 };
