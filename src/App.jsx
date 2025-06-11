@@ -390,9 +390,93 @@ export default function ClickerGame() {
                 {upgrades.goldenClick.active ? t.active : t.activate} (1K)
               </button>
             </div>
-          </div>
-        )}
+ 
+ {/* Multiplicateur Global */}
+    
+    <div className="shop-item">
+      <h3>Multiplicateur Global</h3>
+      <p>Niveau: {upgrades.globalMultiplier.level}</p>
+      <p>Bonus: x{upgrades.globalMultiplier.multiplier.toFixed(1)}</p>
+      <button 
+        onClick={buyGlobalMultiplier}
+        disabled={clicks < upgrades.globalMultiplier.cost}
+        className="shop-button"
+      >
+        Acheter ({formatNumber(upgrades.globalMultiplier.cost)})
+      </button>
+    </div>
 
+    {/* Boost Temporaire */}
+    <div className="shop-item">
+      <h3>Boost d'énergie</h3>
+      <p>Status: {temporaryBoost ? "ACTIF" : "Prêt"}</p>
+      <button 
+        onClick={activateTemporaryBoost}
+        disabled={clicks < 5000 || temporaryBoost}
+        className="golden-button"
+      >
+        {temporaryBoost ? "En cours..." : "Activer (5000)"}
+      </button>
+    </div>
+
+    {/* Investissements */}
+    <div className="shop-item">
+      <h3>Investissements</h3>
+      <div className="investment-options">
+        <div>
+          <h4>Banque</h4>
+          <p>Niveau: {investments.bank.level}</p>
+          <p>Revenu: {formatNumber(investments.bank.income)}/min</p>
+          <button 
+            onClick={() => buyInvestment('bank')}
+            disabled={clicks < investments.bank.cost}
+            className="shop-button"
+          >
+            Investir ({formatNumber(investments.bank.cost)})
+          </button>
+        </div>
+        <div>
+          <h4>Immobilier</h4>
+          <p>Niveau: {investments.realEstate.level}</p>
+          <p>Revenu: {formatNumber(investments.realEstate.income)}/min</p>
+          <button 
+            onClick={() => buyInvestment('realEstate')}
+            disabled={clicks < investments.realEstate.cost}
+            className="shop-button"
+          >
+            Investir ({formatNumber(investments.realEstate.cost)})
+          </button>
+        </div>
+      </div>
+    </div>
+
+    {/* Compétences */}
+    <div className="shop-item">
+      <h3>Compétences</h3>
+      <div className="skill-options">
+        <div>
+          <h4>Méga-Clic</h4>
+          <p>Niveau: {skills.megaClick.level}</p>
+          <p>Puissance: {formatNumber(skills.megaClick.power)}</p>
+          <button 
+            onClick={() => upgradeSkill('megaClick')}
+            disabled={clicks < skills.megaClick.cost}
+            className="shop-button"
+          >
+            Améliorer ({formatNumber(skills.megaClick.cost)})
+          </button>
+          <button 
+            onClick={() => useSkill('megaClick')}
+            disabled={!skills.megaClick.ready || skills.megaClick.level === 0}
+            className="golden-button"
+          >
+            {skills.megaClick.ready ? "Utiliser" : "En recharge..."}
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+)}
         {activeTab === 'prestige' && (
           <div className="prestige-section">
             <h2>{t.prestigeTitle}</h2>

@@ -1,17 +1,17 @@
 export const translations = {
   fr: {
-    gameTitle: "Clicker Game Pro",
+    gameTitle: "Clicker Game",
     clickMe: "CLIQUEZ-MOI!",
     points: "pts",
-    goldenEffect: "GOLDEN!",
+    goldenEffect: "OR!",
     prestigeTitle: "Prestige",
     prestigeDesc: "Réinitialise tout pour des bonus permanents!",
     rebirth: "Renaissance",
     shopTitle: "Boutique",
     autoClicker: "Auto-Clicker",
     quantity: "Quantité",
-    multiplier: "Multiplicateur",
-    goldenClick: "Golden Click",
+    multiplier: "Multiplicateur de puissance",
+    goldenClick: "Click en or",
     duration: "de x5 puissance",
     languageToggle: "FR/ES",
     exportSave: "Exporter",
@@ -29,7 +29,7 @@ export const translations = {
     lastSave: "Dernière sauvegarde"
   },
   es: {
-    gameTitle: "Juego de Clicks Pro",
+    gameTitle: "Juego de Clicks",
     clickMe: "¡HAZ CLIC!",
     points: "puntos",
     goldenEffect: "¡ORO!",
