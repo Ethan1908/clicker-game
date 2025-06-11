@@ -9,7 +9,6 @@ export default function ClickerGame() {
   const [clickPower, setClickPower] = useState(1);
   const [autoClickers, setAutoClickers] = useState(0);
   const [language, setLanguage] = useState(() => {
-    // Charger la langue depuis le localStorage si elle existe
     const saved = localStorage.getItem('clickerSave_v3');
     if (saved) {
       try {
@@ -29,6 +28,7 @@ export default function ClickerGame() {
   const [darkMode, setDarkMode] = useState(false);
   const [lastSaveTime, setLastSaveTime] = useState(null);
   const [saveFlash, setSaveFlash] = useState(false);
+  const [activeTab, setActiveTab] = useState('shop');
 
   // Prestige
   const [prestigeLevel, setPrestigeLevel] = useState(0);
@@ -174,13 +174,13 @@ export default function ClickerGame() {
 
   const saveGame = useCallback(() => {
     const saveData = {
-      v: 2, // version
+      v: 2,
       c: clicks,
       cp: clickPower,
       ac: autoClickers,
       pl: prestigeLevel,
       pp: prestigePoints,
-      l: language, // Inclure la langue actuelle
+      l: language,
       dm: darkMode ? 1 : 0,
       ml: upgrades.multiplicateur.level,
       mc: upgrades.multiplicateur.cost,
@@ -216,7 +216,6 @@ export default function ClickerGame() {
         }
       }
 
-      // Ne pas charger la langue depuis la sauvegarde si elle est déjà définie
       const shouldLoadLanguage = !language;
       
       setClicks(saveData.c || 0);
@@ -294,11 +293,9 @@ export default function ClickerGame() {
     reader.readAsText(file);
   };
 
-  // Fonction de changement de langue
   const changeLanguage = useCallback(() => {
     const newLang = language === 'fr' ? 'es' : 'fr';
     setLanguage(newLang);
-    // Sauvegarder immédiatement après le changement
     setTimeout(saveGame, 0);
   }, [language, saveGame]);
 
@@ -311,140 +308,179 @@ export default function ClickerGame() {
   // Chargement initial
   useEffect(() => {
     loadGame();
-  }, [loadGame]); // Chargement unique au montage
+  }, [loadGame]);
 
   return (
     <div className={`game-container ${darkMode ? 'dark' : 'light'} ${saveFlash ? 'save-flash' : ''}`}>
-      <div className="settings-buttons">
-        <button onClick={() => setDarkMode(!darkMode)} className="theme-toggle">
-          {darkMode ? '☀️' : '🌙'}
-        </button>
-        <button onClick={changeLanguage} className="language-button">
-          {t.languageToggle}
-        </button>
-        <button onClick={exportSave} className="language-button">
-          {t.exportSave}
-        </button>
-        <label className="language-button" style={{ cursor: 'pointer' }}>
-          {t.importSave}
-          <input 
-            type="file" 
-            accept=".txt,.text" 
-            onChange={importSave} 
-            style={{ display: 'none' }} 
-          />
-        </label>
-        {lastSaveTime && <div className="save-status">{t.lastSave}: {lastSaveTime}</div>}
+      <div className="sidebar">
+        <div className="sidebar-header">
+          <h2>{t.gameTitle}</h2>
+        </div>
+        <nav className="sidebar-nav">
+          <button 
+            onClick={() => setActiveTab('shop')} 
+            className={activeTab === 'shop' ? 'active' : ''}
+          >
+            {t.shopTitle}
+          </button>
+          <button 
+            onClick={() => setActiveTab('prestige')} 
+            className={activeTab === 'prestige' ? 'active' : ''}
+          >
+            {t.prestigeTitle}
+          </button>
+          <button 
+            onClick={() => setActiveTab('settings')} 
+            className={activeTab === 'settings' ? 'active' : ''}
+          >
+            {t.settings}
+          </button>
+        </nav>
+        <div className="click-display">
+          <span className="points-display">
+            {formatNumber(clicks)} {t.points}
+            {upgrades.goldenClick.active && <span className="golden-effect">{t.goldenEffect}</span>}
+          </span>
+          <motion.button
+            onClick={handleClick}
+            className="click-button"
+            whileTap={{ scale: 0.95 }}
+          >
+            {t.clickMe}
+          </motion.button>
+        </div>
       </div>
 
       <div className="main-content">
-        <h1>{t.gameTitle}</h1>
+        {activeTab === 'shop' && (
+          <div className="shop-section">
+            <div className="shop-item">
+              <h3>{t.autoClicker}</h3>
+              <p>{t.quantity}: {autoClickers}</p>
+              <p>{t.clickPower}: {1 + upgrades.prestige.autoClicker.level}</p>
+              <button 
+                onClick={buyAutoClicker} 
+                disabled={clicks < autoClickerCost}
+                className="shop-button"
+              >
+                {t.buy} ({formatNumber(autoClickerCost)})
+              </button>
+            </div>
 
-        <div className="click-section">
-          <motion.div className="click-display">
-            <span className="points-display">
-              {formatNumber(clicks)} {t.points}
-              {upgrades.goldenClick.active && <span className="golden-effect">{t.goldenEffect}</span>}
-            </span>
-            <motion.button
-              onClick={handleClick}
-              className="click-button"
-              whileTap={{ scale: 0.95 }}
-            >
-              {t.clickMe}
-            </motion.button>
-          </motion.div>
-        </div>
+            <div className="shop-item">
+              <h3>{t.multiplier}</h3>
+              <p>{t.level}: {upgrades.multiplicateur.level}</p>
+              <button 
+                onClick={() => buyUpgrade('multiplicateur')} 
+                disabled={clicks < upgrades.multiplicateur.cost}
+                className="shop-button"
+              >
+                {t.buy} ({formatNumber(upgrades.multiplicateur.cost)})
+              </button>
+            </div>
 
-        <div className="shop-section">
-          <h2>{t.shopTitle}</h2>
-          
-          <div className="shop-item">
-            <h3>{t.autoClicker} ({formatNumber(autoClickerCost)} {t.points})</h3>
-            <button 
-              onClick={buyAutoClicker} 
-              className="shop-button"
-              disabled={clicks < autoClickerCost}
-            >
-              {t.buy}
-            </button>
-            <p className="quantity">{t.quantity}: {autoClickers} ({formatNumber(productionPerSecond)}/s)</p>
+            <div className="shop-item">
+              <h3>{t.goldenClick}</h3>
+              <p>{t.duration}: {upgrades.goldenClick.duration}s</p>
+              <button 
+                onClick={activateGoldenClick} 
+                disabled={clicks < 1000 || upgrades.goldenClick.active}
+                className="golden-button"
+              >
+                {upgrades.goldenClick.active ? t.active : t.activate} (1000)
+              </button>
+            </div>
           </div>
+        )}
 
-          <div className="shop-item">
-            <h3>{t.multiplier} x{upgrades.multiplicateur.level + 1} ({formatNumber(upgrades.multiplicateur.cost)} {t.points})</h3>
-            <button 
-              onClick={() => buyUpgrade('multiplicateur')} 
-              className="shop-button"
-              disabled={clicks < upgrades.multiplicateur.cost}
-            >
-              {t.buy}
-            </button>
-          </div>
-
-          <div className="shop-item">
-            <h3>{t.goldenClick} (1000 {t.points})</h3>
-            <button 
-              onClick={activateGoldenClick}
-              disabled={upgrades.goldenClick.active || clicks < 1000}
-              className="golden-button"
-            >
-              {upgrades.goldenClick.active ? t.active : t.activate}
-            </button>
-            <p className="duration">{upgrades.goldenClick.duration}s {t.duration}</p>
-          </div>
-        </div>
-
-        <div className="prestige-section">
-          <h2>{t.prestigeTitle}</h2>
-          <p>{t.prestigeDesc}</p>
-          <p>{t.level}: {prestigeLevel} | {t.points}: {prestigePoints}</p>
-          
-          <button 
-            onClick={performPrestige}
-            className="prestige-button"
-            disabled={clicks < 1_000_000}
-          >
-            {t.rebirth} (1M {t.points})
-          </button>
-
-          <div className="prestige-upgrades">
-            <h3>{t.prestigeUpgrades}</h3>
+        {activeTab === 'prestige' && (
+          <div className="prestige-section">
+            <h2>{t.prestigeTitle}</h2>
+            <p>{t.prestigeDesc}</p>
+            <p>{t.level}: {prestigeLevel}</p>
+            <p>{t.points}: {prestigePoints}</p>
             
-            <div className="upgrade-item">
-              <span>+2% {t.clickPower} (Niv. {upgrades.prestige.clickPower.level})</span>
-              <button 
-                onClick={() => buyPrestigeUpgrade('clickPower')} 
-                disabled={prestigePoints < upgrades.prestige.clickPower.cost}
-                className="shop-button"
-              >
-                {formatNumber(upgrades.prestige.clickPower.cost)} pts
-              </button>
-            </div>
+            <button 
+              onClick={performPrestige} 
+              disabled={clicks < 1_000_000}
+              className="prestige-button"
+            >
+              {t.rebirth} (1M)
+            </button>
 
-            <div className="upgrade-item">
-              <span>+1 {t.autoClicker}/sec (Niv. {upgrades.prestige.autoClicker.level})</span>
-              <button 
-                onClick={() => buyPrestigeUpgrade('autoClicker')} 
-                disabled={prestigePoints < upgrades.prestige.autoClicker.cost}
-                className="shop-button"
-              >
-                {formatNumber(upgrades.prestige.autoClicker.cost)} pts
-              </button>
-            </div>
-
-            <div className="upgrade-item">
-              <span>+5s Golden (Niv. {upgrades.prestige.goldenTime.level})</span>
-              <button 
-                onClick={() => buyPrestigeUpgrade('goldenTime')} 
-                disabled={prestigePoints < upgrades.prestige.goldenTime.cost}
-                className="shop-button"
-              >
-                {formatNumber(upgrades.prestige.goldenTime.cost)} pts
-              </button>
+            <div className="prestige-upgrades">
+              <h3>{t.prestigeUpgrades}</h3>
+              <div className="upgrade-item">
+                <div>
+                  <h4>{t.clickPower}</h4>
+                  <p>{t.level}: {upgrades.prestige.clickPower.level}</p>
+                </div>
+                <button 
+                  onClick={() => buyPrestigeUpgrade('clickPower')}
+                  disabled={prestigePoints < upgrades.prestige.clickPower.cost}
+                  className="shop-button"
+                >
+                  {t.buy} ({formatNumber(upgrades.prestige.clickPower.cost)})
+                </button>
+              </div>
+              
+              <div className="upgrade-item">
+                <div>
+                  <h4>{t.autoClicker}</h4>
+                  <p>{t.level}: {upgrades.prestige.autoClicker.level}</p>
+                </div>
+                <button 
+                  onClick={() => buyPrestigeUpgrade('autoClicker')}
+                  disabled={prestigePoints < upgrades.prestige.autoClicker.cost}
+                  className="shop-button"
+                >
+                  {t.buy} ({formatNumber(upgrades.prestige.autoClicker.cost)})
+                </button>
+              </div>
+              
+              <div className="upgrade-item">
+                <div>
+                  <h4>{t.goldenClick}</h4>
+                  <p>{t.level}: {upgrades.prestige.goldenTime.level}</p>
+                </div>
+                <button 
+                  onClick={() => buyPrestigeUpgrade('goldenTime')}
+                  disabled={prestigePoints < upgrades.prestige.goldenTime.cost}
+                  className="shop-button"
+                >
+                  {t.buy} ({formatNumber(upgrades.prestige.goldenTime.cost)})
+                </button>
+              </div>
             </div>
           </div>
-        </div>
+        )}
+
+        {activeTab === 'settings' && (
+          <div className="settings-section">
+            <h2>{t.settings}</h2>
+            <div className="settings-options">
+              <button onClick={() => setDarkMode(!darkMode)} className="theme-toggle">
+                {darkMode ? '☀️ Mode clair' : '🌙 Mode sombre'}
+              </button>
+              <button onClick={changeLanguage} className="language-button">
+                {t.languageToggle}
+              </button>
+              <button onClick={exportSave} className="export-button">
+                {t.exportSave}
+              </button>
+              <label className="import-button">
+                {t.importSave}
+                <input 
+                  type="file" 
+                  accept=".txt,.text" 
+                  onChange={importSave} 
+                  style={{ display: 'none' }} 
+                />
+              </label>
+              {lastSaveTime && <div className="save-status">{t.lastSave}: {lastSaveTime}</div>}
+            </div>
+          </div>
+        )}
       </div>
     </div>
   );

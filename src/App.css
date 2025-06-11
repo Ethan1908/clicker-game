@@ -24,10 +24,7 @@ body, html {
 .game-container {
   width: 100%;
   height: 100vh;
-  padding: 1rem;
   display: flex;
-  flex-direction: column;
-  align-items: center;
   overflow: auto;
   transition: background 0.3s, color 0.3s;
 }
@@ -42,54 +39,75 @@ body, html {
   color: var(--dark-text);
 }
 
-.main-content {
-  width: 100%;
-  max-width: 1600px;
+/* Sidebar Styles */
+.sidebar {
+  width: 250px;
+  background: rgba(0, 0, 0, 0.1);
+  padding: 1rem;
   display: flex;
   flex-direction: column;
-  gap: 2rem;
+  border-right: 1px solid rgba(0, 0, 0, 0.1);
 }
 
-.theme-toggle {
-  position: fixed;
-  top: 20px;
-  right: 20px;
-  background: none;
-  border: none;
-  font-size: 1.8rem;
-  cursor: pointer;
-  z-index: 100;
-  padding: 0.5rem;
+.dark .sidebar {
+  background: rgba(255, 255, 255, 0.1);
+  border-right: 1px solid rgba(255, 255, 255, 0.1);
 }
 
-h1 {
-  font-size: 2.5rem;
-  text-align: center;
-  margin-bottom: 1rem;
-}
-
-h2, h3 {
-  margin-bottom: 1rem;
+.sidebar-header {
+  padding: 1rem 0;
   text-align: center;
 }
 
-.click-section {
-  width: 100%;
+.sidebar-nav {
   display: flex;
-  justify-content: center;
-  padding: 2rem 0;
+  flex-direction: column;
+  gap: 0.5rem;
+  margin: 1rem 0;
 }
 
+.sidebar-nav button {
+  padding: 0.8rem;
+  border: none;
+  background: none;
+  text-align: left;
+  cursor: pointer;
+  border-radius: 5px;
+  transition: background 0.3s;
+  font-weight: 500;
+}
+
+.sidebar-nav button:hover {
+  background: rgba(0, 0, 0, 0.1);
+}
+
+.dark .sidebar-nav button:hover {
+  background: rgba(255, 255, 255, 0.1);
+}
+
+.sidebar-nav button.active {
+  background: var(--primary);
+  color: white;
+}
+
+.main-content {
+  flex: 1;
+  padding: 2rem;
+  overflow-y: auto;
+}
+
+/* Click Section */
 .click-display {
+  margin-top: auto;
+  padding: 1rem 0;
   display: flex;
   flex-direction: column;
   align-items: center;
   gap: 1rem;
-  width: 100%;
 }
 
 .points-display {
-  font-size: 2.5rem;
+  font-size: 1.8rem;
   font-weight: bold;
   text-align: center;
 }
@@ -98,12 +116,12 @@ h2, h3 {
   background: var(--primary);
   color: white;
   border: none;
-  padding: 2.5rem 5rem;
-  font-size: 2rem;
+  padding: 1.5rem 3rem;
+  font-size: 1.5rem;
   border-radius: 15px;
   cursor: pointer;
   width: 100%;
-  max-width: 600px;
+  max-width: 400px;
   transition: transform 0.2s, box-shadow 0.3s;
 }
 
@@ -123,48 +141,17 @@ h2, h3 {
   to { opacity: 1; }
 }
 
-.prestige-bar {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 1rem;
-  align-items: center;
-  justify-content: center;
-  padding: 1rem;
-  background: rgba(0,0,0,0.1);
-  border-radius: 10px;
-  width: 100%;
-}
-
-.prestige-button {
-  background: #9C27B0;
-  color: white;
-  border: none;
-  padding: 0.8rem 1.5rem;
-  border-radius: 8px;
-  cursor: pointer;
-  font-weight: bold;
-  transition: transform 0.2s;
-}
-
-.prestige-button:hover:not(:disabled) {
-  transform: scale(1.05);
-}
-
-.prestige-button:disabled {
-  opacity: 0.6;
-  cursor: not-allowed;
-}
-
+/* Shop Section */
 .shop-section {
   width: 100%;
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(350px, 1fr));
+  grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
   gap: 1.5rem;
-  padding: 1rem;
+  padding: 1rem 0;
 }
 
 .shop-item {
-  background: rgba(0,0,0,0.1);
+  background: rgba(0, 0, 0, 0.1);
   padding: 1.5rem;
   border-radius: 12px;
   display: flex;
@@ -173,16 +160,26 @@ h2, h3 {
   transition: transform 0.2s;
 }
 
+.dark .shop-item {
+  background: rgba(255, 255, 255, 0.1);
+}
+
 .shop-item:hover {
   transform: translateY(-3px);
 }
 
+.shop-item h3 {
+  margin: 0;
+  font-size: 1.2rem;
+  color: var(--primary);
+}
+
 .shop-button, .golden-button {
   border: none;
-  padding: 1rem 1.5rem;
+  padding: 0.8rem 1.5rem;
   border-radius: 8px;
   cursor: pointer;
-  font-size: 1.1rem;
+  font-size: 1rem;
   font-weight: bold;
   transition: transform 0.2s;
   width: 100%;
@@ -207,141 +204,6 @@ h2, h3 {
   transform: scale(1.03);
 }
 
-.stats-panel {
-  width: 100%;
-  background: rgba(0,0,0,0.1);
-  border-radius: 12px;
-  padding: 1.5rem;
-}
-
-.stats-grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
-  gap: 1.5rem;
-  margin-top: 1rem;
-}
-
-.stat-item {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 0.5rem;
-  background: rgba(0,0,0,0.1);
-  padding: 1rem;
-  border-radius: 8px;
-}
-
-/* Responsive pour tablettes */
-@media (max-width: 1024px) {
-  .click-button {
-    padding: 2rem 4rem;
-    font-size: 1.8rem;
-  }
-  
-  .shop-section {
-    grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
-  }
-}
-
-/* Responsive pour mobiles */
-@media (max-width: 768px) {
-  .game-container {
-    padding: 1rem;
-  }
-  
-  h1 {
-    font-size: 2rem;
-  }
-  
-  .click-button {
-    padding: 1.5rem 3rem;
-    font-size: 1.5rem;
-  }
-  
-  .shop-section {
-    grid-template-columns: 1fr;
-  }
-  
-  .stats-grid {
-    grid-template-columns: 1fr;
-  }
-  
-  .theme-toggle {
-    font-size: 1.5rem;
-  }
-}
-
-/* Ajoutez ces styles à votre fichier App.css existant */
-.settings-buttons {
-  position: fixed;
-  top: 20px;
-  right: 20px;
-  display: block;
-  gap: 10px;
-  z-index: 100;
-}
-
-.language-button {
-  background: none;
-  border: 2px solid var(--secondary);
-  color: var(--secondary);
-  padding: 0.5rem 1rem;
-  border-radius: 20px;
-  cursor: pointer;
-  font-weight: bold;
-  transition: all 0.3s;
-}
-
-.language-button:hover {
-  background: var(--secondary);
-  color: white;
-}
-
-.dark .language-button {
-  border-color: var(--dark-text);
-  color: var(--dark-text);
-}
-
-.dark .language-button:hover {
-  background: var(--dark-text);
-  color: var(--dark-bg);
-}
-
-.theme-toggle {
-  background: none;
-  border: none;
-  font-size: 1.8rem;
-  cursor: pointer;
-  padding: 0.5rem;
-  transition: transform 0.3s;
-}
-
-.theme-toggle:hover {
-  transform: scale(1.1);
-}
-
-/* Ajoutez ces styles à votre fichier existant */
-
-.shop-item {
-  background: rgba(0, 0, 0, 0.1);
-  padding: 1.5rem;
-  border-radius: 10px;
-  display: flex;
-  flex-direction: column;
-  gap: 0.8rem;
-}
-
-.shop-item h3 {
-  margin: 0;
-  font-size: 1.2rem;
-  color: var(--primary);
-}
-
-.shop-button, .golden-button {
-  padding: 0.8rem;
-  font-size: 1rem;
-}
-
 .quantity, .duration {
   margin: 0;
   font-size: 0.9rem;
@@ -351,12 +213,12 @@ h2, h3 {
 .dark .quantity, .dark .duration {
   color: #aaa;
 }
-/* Ajoutez ces styles à la fin */
+
+/* Prestige Section */
 .prestige-section {
   background: rgba(255, 215, 0, 0.1);
   padding: 1.5rem;
   border-radius: 12px;
-  margin-top: 2rem;
   border: 2px solid var(--gold);
 }
 
@@ -366,6 +228,9 @@ h2, h3 {
   padding: 1rem 2rem;
   font-size: 1.2rem;
   margin: 1rem 0;
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
 }
 
 .prestige-upgrades {
@@ -379,45 +244,286 @@ h2, h3 {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  background: rgba(0,0,0,0.1);
+  background: rgba(0, 0, 0, 0.1);
   padding: 1rem;
   border-radius: 8px;
 }
 
 .dark .upgrade-item {
-  background: rgba(255,255,255,0.1);
+  background: rgba(255, 255, 255, 0.1);
 }
 
-.upgrade-item button {
-  padding: 0.5rem 1rem;
-  font-size: 0.9rem;
+/* Settings Section */
+.settings-section {
+  max-width: 600px;
+  margin: 0 auto;
+}
+
+.settings-options {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.settings-options button, .settings-options label {
+  padding: 1rem;
+  border-radius: 8px;
+  border: none;
+  background: rgba(0, 0, 0, 0.1);
+  cursor: pointer;
+  text-align: center;
+  transition: transform 0.2s;
+  font-weight: 500;
+}
+
+.dark .settings-options button, .dark .settings-options label {
+  background: rgba(255, 255, 255, 0.1);
+}
+
+.settings-options button:hover, .settings-options label:hover {
+  transform: scale(1.02);
+}
+
+.theme-toggle {
+  background: var(--secondary);
+  color: white;
+}
+
+.language-button {
+  background: var(--primary);
+  color: white;
+}
+
+.export-button {
+  background: #FF9800;
+  color: white;
+}
+
+.import-button {
+  background: #9C27B0;
+  color: white;
+  display: flex;
+  justify-content: center;
+  align-items: center;
 }
 
 .save-status {
-  position: fixed;
-  bottom: 10px;
-  right: 10px;
-  background: rgba(0, 0, 0, 0.7);
-  color: white;
-  padding: 5px 10px;
+  margin-top: 1rem;
+  padding: 0.5rem;
+  background: rgba(0, 0, 0, 0.1);
   border-radius: 5px;
-  font-size: 0.8rem;
+  text-align: center;
+  font-size: 0.9rem;
 }
 
 .dark .save-status {
-  background: rgba(255, 255, 255, 0.2);
+  background: rgba(255, 255, 255, 0.1);
 }
 
-.settings-buttons {
-  position: fixed;
-  top: 20px;
-  right: 20px;
+/* Responsive Design */
+@media (max-width: 1024px) {
+  .click-button {
+    padding: 1.2rem 2.5rem;
+    font-size: 1.3rem;
+  }
+}
+
+@media (max-width: 768px) {
+  .game-container {
+    flex-direction: column;
+  }
+  
+  .sidebar {
+    width: 100%;
+    flex-direction: row;
+    flex-wrap: wrap;
+    border-right: none;
+    border-bottom: 1px solid rgba(0, 0, 0, 0.1);
+    padding: 0.5rem;
+  }
+  
+  .sidebar-nav {
+    flex-direction: row;
+    flex-wrap: wrap;
+    justify-content: center;
+  }
+  
+  .sidebar-nav button {
+    padding: 0.5rem 1rem;
+    font-size: 0.9rem;
+  }
+  
+  .click-display {
+    margin-top: 0;
+    margin-left: auto;
+    order: 2;
+    padding: 0.5rem;
+  }
+  
+  .click-button {
+    padding: 1rem 2rem;
+    font-size: 1.1rem;
+  }
+  
+  .sidebar-header {
+    order: 1;
+    width: 100%;
+    padding: 0.5rem;
+  }
+  
+  .sidebar-nav {
+    order: 3;
+    width: 100%;
+  }
+  
+  .main-content {
+    padding: 1rem;
+  }
+}
+
+@media (max-width: 480px) {
+  .shop-section {
+    grid-template-columns: 1fr;
+  }
+  
+  .click-button {
+    padding: 0.8rem 1.5rem;
+    font-size: 1rem;
+  }
+  
+  .points-display {
+    font-size: 1.5rem;
+  }
+}
+
+/* Améliorations pour le menu latéral */
+.sidebar {
+  min-width: 250px;
+  height: 100vh;
+  position: sticky;
+  top: 0;
+  overflow-y: auto;
+}
+
+.sidebar-nav button {
   display: flex;
-  flex-direction: column;
-  gap: 10px;
-  z-index: 100;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.8rem 1rem;
 }
 
-.settings-buttons button, .settings-buttons label {
-  margin: 0;
+.sidebar-nav button::before {
+  content: "";
+  display: inline-block;
+  width: 20px;
+  height: 20px;
+  background-size: contain;
+  background-repeat: no-repeat;
+}
+
+.sidebar-nav button:nth-child(1)::before {
+  background-image: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor"><path d="M20 7h-4V5c0-1.1-.9-2-2-2h-4c-1.1 0-2 .9-2 2v2H4c-1.1 0-2 .9-2 2v10c0 1.1.9 2 2 2h16c1.1 0 2-.9 2-2V9c0-1.1-.9-2-2-2zM10 5h4v2h-4V5zm10 14H4V9h16v10z"/></svg>');
+}
+
+.sidebar-nav button:nth-child(2)::before {
+  background-image: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2L4 5v6.09c0 5.05 3.41 9.76 8 10.91 4.59-1.15 8-5.86 8-10.91V5l-8-3zm6 9.09c0 4-2.55 7.7-6 8.83-3.45-1.13-6-4.82-6-8.83v-4.7l6-2.25 6 2.25v4.7z"/></svg>');
+}
+
+.sidebar-nav button:nth-child(3)::before {
+  background-image: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor"><path d="M19.14 12.94c.04-.3.06-.61.06-.94 0-.32-.02-.64-.07-.94l2.03-1.58c.18-.14.23-.41.12-.61l-1.92-3.32c-.12-.22-.37-.29-.59-.22l-2.39.96c-.5-.38-1.03-.7-1.62-.94l-.36-2.54c-.04-.24-.24-.41-.48-.41h-3.84c-.24 0-.43.17-.47.41l-.36 2.54c-.59.24-1.13.57-1.62.94l-2.39-.96c-.22-.08-.47 0-.59.22L2.74 8.87c-.12.21-.08.47.12.61l2.03 1.58c-.05.3-.09.63-.09.94s.02.64.07.94l-2.03 1.58c-.18.14-.23.41-.12.61l1.92 3.32c.12.22.37.29.59.22l2.39-.96c.5.38 1.03.7 1.62.94l.36 2.54c.05.24.24.41.48.41h3.84c.24 0 .44-.17.47-.41l.36-2.54c.59-.24 1.13-.56 1.62-.94l2.39.96c.22.08.47 0 .59-.22l1.92-3.32c.12-.22.07-.47-.12-.61l-2.01-1.58zM12 15.6c-1.98 0-3.6-1.62-3.6-3.6s1.62-3.6 3.6-3.6 3.6 1.62 3.6 3.6-1.62 3.6-3.6 3.6z"/></svg>');
+}
+
+.dark .sidebar-nav button::before {
+  filter: invert(1);
+}
+
+.sidebar-nav button.active::before {
+  filter: brightness(0) invert(1);
+}
+
+/* Améliorations pour le contenu principal */
+.main-content {
+  padding: 2rem 3rem;
+}
+
+/* Animation de transition entre les onglets */
+.tab-content {
+  animation: fadeIn 0.3s ease-in-out;
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(10px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+/* Bouton de clic amélioré */
+.click-button {
+  position: relative;
+  overflow: hidden;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+}
+
+.click-button::after {
+  content: "";
+  position: absolute;
+  top: -50%;
+  left: -50%;
+  width: 200%;
+  height: 200%;
+  background: rgba(255, 255, 255, 0.1);
+  transform: rotate(45deg);
+  transition: all 0.3s;
+}
+
+.click-button:hover::after {
+  left: 100%;
+}
+
+/* Effet de clic */
+.click-button:active {
+  transform: scale(0.95);
+}
+
+/* Styles pour les sections */
+.shop-section, .prestige-section, .settings-section {
+  background: rgba(0, 0, 0, 0.05);
+  border-radius: 16px;
+  padding: 2rem;
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
+}
+
+.dark .shop-section, 
+.dark .prestige-section, 
+.dark .settings-section {
+  background: rgba(255, 255, 255, 0.05);
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.2);
+}
+
+/* Améliorations responsive */
+@media (max-width: 768px) {
+  .sidebar {
+    height: auto;
+    position: relative;
+    min-width: 100%;
+  }
+  
+  .main-content {
+    padding: 1rem;
+  }
+  
+  .shop-section, .prestige-section, .settings-section {
+    padding: 1.5rem;
+  }
+}
+
+@media (max-width: 480px) {
+  .sidebar-nav button {
+    padding: 0.6rem;
+    font-size: 0.9rem;
+  }
+  
+  .sidebar-nav button::before {
+    width: 16px;
+    height: 16px;
+  }
 }
