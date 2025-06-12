@@ -37,6 +37,7 @@ export default function useClickerGame() {
   const [upgrades, setUpgrades] = useState({
     multiplicateur: { level: 1, cost: 50 },
     goldenClick: { active: false, duration: 10 },
+    diamondClick: { active: false, duration: 20 }, // NOUVEAU
     globalMultiplier: { level: 0, cost: 5000, multiplier: 1.0 },
     prestige: {
       clickPower: { level: 0, cost: 100 },
@@ -61,8 +62,12 @@ export default function useClickerGame() {
 
   // --- Formatage des nombres
   const formatNumber = useCallback((num) => {
+    if (num >= 1_000_000_000_000_000_000_000_000_000_000) return (num / 1_000_000_000_000_000_000_000_000_000_000).toFixed(3) + 'Nov';
+    if (num >= 1_000_000_000_000_000_000_000_000_000) return (num / 1_000_000_000_000_000_000_000_000_000).toFixed(3) + 'Oct';
+    if (num >= 1_000_000_000_000_000_000_000_000) return (num / 1_000_000_000_000_000_000_000_000).toFixed(3) + 'Sp';
+    if (num >= 1_000_000_000_000_000_000_000) return (num / 1_000_000_000_000_000_000_000).toFixed(3) + 'Sx';
     if (num >= 1_000_000_000_000_000_000) return (num / 1_000_000_000_000_000_000).toFixed(3) + 'Qi';    
-    if (num >= 1_000_000_000_000_000) return (num / 1_000_000_000_000_000).toFixed(3) + 'Qad';
+    if (num >= 1_000_000_000_000_000) return (num / 1_000_000_000_000_000).toFixed(3) + 'Qa';
     if (num >= 1_000_000_000_000) return (num / 1_000_000_000_000).toFixed(3) + 'T';
     if (num >= 1_000_000_000) return (num / 1_000_000_000).toFixed(3) + 'B';
     if (num >= 1_000_000) return (num / 1_000_000).toFixed(3) + 'M';
@@ -73,8 +78,9 @@ export default function useClickerGame() {
   // --- Logique du jeu (callbacks)
   const handleClick = useCallback(() => {
     let power = clickPower * upgrades.globalMultiplier.multiplier;
-    if (upgrades.goldenClick.active) power *= 5;
-    if (temporaryBoost) power *= 2;
+    if (upgrades.diamondClick.active) power *= 20;
+    else if (upgrades.goldenClick.active) power *= 5;
+    if (temporaryBoost) power *= 1.5;
     setClicks(prev => prev + power);
   }, [clickPower, upgrades, temporaryBoost]);
 
@@ -102,7 +108,7 @@ export default function useClickerGame() {
         ...prev,
         globalMultiplier: {
           ...prev.globalMultiplier,
-          multiplier: prev.globalMultiplier.multiplier + 0.1
+          multiplier: prev.globalMultiplier.multiplier + 0.1 
         }
       }));
     }
@@ -123,6 +129,28 @@ export default function useClickerGame() {
       }, upgrades.goldenClick.duration * 1000);
     }
   }, [clicks, upgrades.goldenClick.active, upgrades.goldenClick.duration]);
+
+  // NOUVEAU : Diamond Click
+  const activateDiamondClick = useCallback(() => {
+    const diamondCost = 500000000000;
+    if (
+      clicks >= diamondCost &&
+      !upgrades.diamondClick.active &&
+      prestigeLevel >= 2
+    ) {
+      setClicks(prev => prev - diamondCost);
+      setUpgrades(prev => ({
+        ...prev,
+        diamondClick: { ...prev.diamondClick, active: true }
+      }));
+      setTimeout(() => {
+        setUpgrades(prev => ({
+          ...prev,
+          diamondClick: { ...prev.diamondClick, active: false }
+        }));
+      }, upgrades.diamondClick.duration * 1000);
+    }
+  }, [clicks, upgrades.diamondClick.active, upgrades.diamondClick.duration, prestigeLevel]);
 
   const buyGlobalMultiplier = useCallback(() => {
     buyUpgrade('globalMultiplier');
@@ -199,6 +227,7 @@ export default function useClickerGame() {
       setUpgrades({
         multiplicateur: { level: 1, cost: 50 },
         goldenClick: { active: false, duration: 10 + upgrades.prestige.goldenTime.level * 5 },
+        diamondClick: { active: false, duration: 20 }, // reset diamond
         globalMultiplier: { level: 0, cost: 5000, multiplier: 1.0 },
         prestige: upgrades.prestige
       });
@@ -236,7 +265,8 @@ export default function useClickerGame() {
       if (autoClickers > 0) {
         let power = 1 + upgrades.prestige.autoClicker.level;
         power *= upgrades.globalMultiplier.multiplier;
-        if (upgrades.goldenClick.active) power *= 5;
+        if (upgrades.diamondClick.active) power *= 10;
+        else if (upgrades.goldenClick.active) power *= 5;
         if (temporaryBoost) power *= 2;
         setClicks(prev => prev + autoClickers * power);
       }
@@ -277,6 +307,8 @@ export default function useClickerGame() {
       mc: upgrades.multiplicateur.cost,
       gc: upgrades.goldenClick.active ? 1 : 0,
       gd: upgrades.goldenClick.duration,
+      dc: upgrades.diamondClick.active ? 1 : 0, // sauvegarder diamond
+      dd: upgrades.diamondClick.duration,
       gm: upgrades.globalMultiplier.level,
       gmc: upgrades.globalMultiplier.cost,
       tb: temporaryBoost ? 1 : 0,
@@ -324,6 +356,10 @@ export default function useClickerGame() {
         goldenClick: {
           active: saveData.gc === 1,
           duration: saveData.gd || 10
+        },
+        diamondClick: {
+          active: saveData.dc === 1,
+          duration: saveData.dd || 20
         },
         globalMultiplier: {
           level: saveData.gm || 0,
@@ -426,6 +462,7 @@ export default function useClickerGame() {
     buyAutoClicker,
     buyUpgrade,
     activateGoldenClick,
+    activateDiamondClick,
     buyGlobalMultiplier,
     activateTemporaryBoost,
     buyInvestment,

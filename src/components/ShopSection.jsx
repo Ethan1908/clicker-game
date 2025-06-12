@@ -1,7 +1,8 @@
 export default function ShopSection({ state, actions, t, formatNumber }) {
-  const { clicks, autoClickers, upgrades, temporaryBoost, investments, skills } = state;
-  const { buyAutoClicker, buyUpgrade, activateGoldenClick, buyGlobalMultiplier, activateTemporaryBoost, buyInvestment, upgradeSkill, useSkill } = actions;
+  const { clicks, autoClickers, upgrades, temporaryBoost, investments, skills, prestigeLevel } = state;
+  const { buyAutoClicker, buyUpgrade, activateGoldenClick, activateDiamondClick, buyGlobalMultiplier, activateTemporaryBoost, buyInvestment, upgradeSkill, useSkill } = actions;
   const autoClickerCost = 10 + autoClickers * 5;
+  const diamondCost = 500000000000;
 
   return (
     <div className="shop-section">
@@ -40,6 +41,20 @@ export default function ShopSection({ state, actions, t, formatNumber }) {
           className="golden-button"
         >
           {upgrades.goldenClick.active ? t.active : t.activate} (1K)
+        </button>
+      </div>
+      {/* Diamond Click */}
+      <div className="shop-item">
+        <h3>💎 Diamond Click</h3>
+        <p>Durée : {upgrades.diamondClick.duration}s</p>
+        <p>Effet : x10 clics</p>
+        <p>Requis : Prestige niveau 2</p>
+        <button
+          onClick={activateDiamondClick}
+          disabled={clicks < diamondCost || upgrades.diamondClick.active || prestigeLevel < 2}
+          className="golden-button"
+        >
+          {upgrades.diamondClick.active ? t.active : `Activer (50K)`}
         </button>
       </div>
       {/* Global Multiplier */}
