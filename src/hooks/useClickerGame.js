@@ -453,7 +453,7 @@ export default function useClickerGame() {
 
   useEffect(() => {
     loadGame();
-  }, [loadGame]);
+  }, []);
 
   // --- Regroupement des actions
   const actions = {
