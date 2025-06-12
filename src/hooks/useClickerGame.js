@@ -62,14 +62,16 @@ export default function useClickerGame() {
 
   // --- Formatage des nombres
   const formatNumber = useCallback((num) => {
-    if (num >= 1_000_000_000_000_000_000_000_000_000_000) return (num / 1_000_000_000_000_000_000_000_000_000_000).toFixed(3) + ' Nov';
-    if (num >= 1_000_000_000_000_000_000_000_000_000) return (num / 1_000_000_000_000_000_000_000_000_000).toFixed(3) + ' Oct';
-    if (num >= 1_000_000_000_000_000_000) return (num / 1_000_000_000_000_000_000_000_000).toFixed(3) + ' Sp';
-    if (num >= 1_000_000_000_000_000) return (num / 1_000_000_000_000_000_000_000).toFixed(3) + ' Sx';
-    if (num >= 1_000_000_000_000) return (num / 1_000_000_000_000).toFixed(3) + ' Qi';    
-    if (num >= 1_000_000_000) return (num / 1_000_000_000).toFixed(3) + ' Qa';
-    if (num >= 1_000_000) return (num / 1_000_000).toFixed(3) + ' B';
-    if (num >= 1_000) return (num / 1_000).toFixed(2) + ' K';
+    if (num >= 1_000_000_000_000_000_000_000_000_000_000) return (num / 1_000_000_000_000_000_000_000_000_000_000).toFixed(3) + 'Nov';
+    if (num >= 1_000_000_000_000_000_000_000_000_000) return (num / 1_000_000_000_000_000_000_000_000_000).toFixed(3) + 'Oct';
+    if (num >= 1_000_000_000_000_000_000_000_000) return (num / 1_000_000_000_000_000_000_000_000).toFixed(3) + 'Sp';
+    if (num >= 1_000_000_000_000_000_000_000) return (num / 1_000_000_000_000_000_000_000).toFixed(3) + 'Sx';
+    if (num >= 1_000_000_000_000_000_000) return (num / 1_000_000_000_000_000_000).toFixed(3) + 'Qi';
+    if (num >= 1_000_000_000_000_000) return (num / 1_000_000_000_000_000).toFixed(3) + 'Qa';
+    if (num >= 1_000_000_000_000) return (num / 1_000_000_000_000).toFixed(3) + 'T';
+    if (num >= 1_000_000_000) return (num / 1_000_000_000).toFixed(3) + 'B';
+    if (num >= 1_000_000) return (num / 1_000_000).toFixed(3) + 'M';
+    if (num >= 1_000) return (num / 1_000).toFixed(2) + 'K';
     return num.toString();
   }, []);
 
@@ -477,7 +479,8 @@ export default function useClickerGame() {
     t,
     state: {
       clicks, clickPower, autoClickers, darkMode, temporaryBoost,
-      prestigeLevel, prestigePoints, upgrades, investments, skills
+      prestigeLevel, prestigePoints, upgrades, investments, skills,
+      language // <-- AJOUTE cette ligne !
     },
     actions,
     formatNumber,
