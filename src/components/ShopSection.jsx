@@ -45,23 +45,23 @@ export default function ShopSection({ state, actions, t, formatNumber }) {
       </div>
       {/* Diamond Click */}
       <div className="shop-item">
-        <h3>💎 Diamond Click</h3>
-        <p>Durée : {upgrades.diamondClick.duration}s</p>
-        <p>Effet : x10 clics</p>
-        <p>Requis : Prestige niveau 2</p>
+        <h3>💎 {t.diamondClick}</h3>
+        <p>{t.diamondDuration}: {upgrades.diamondClick.duration}s</p>
+        <p>{t.diamondEffect}</p>
+        <p>{t.diamondRequired}</p>
         <button
           onClick={activateDiamondClick}
           disabled={clicks < diamondCost || upgrades.diamondClick.active || prestigeLevel < 2}
           className="golden-button"
         >
-          {upgrades.diamondClick.active ? t.active : `Activer (50K)`}
+          {upgrades.diamondClick.active ? t.active : `${t.activate} (500B)`}
         </button>
       </div>
       {/* Global Multiplier */}
       <div className="shop-item">
         <h3>{t.globalMultiplier}</h3>
         <p>{t.level}: {upgrades.globalMultiplier.level}</p>
-        <p>Bonus: x{upgrades.globalMultiplier.multiplier.toFixed(1)}</p>
+        <p>{t.bonus}: x{upgrades.globalMultiplier.multiplier.toFixed(1)}</p>
         <button 
           onClick={buyGlobalMultiplier}
           disabled={clicks < upgrades.globalMultiplier.cost}
@@ -73,7 +73,7 @@ export default function ShopSection({ state, actions, t, formatNumber }) {
       {/* Temporary Boost */}
       <div className="shop-item">
         <h3>{t.temporaryBoost}</h3>
-        <p>Status: {temporaryBoost ? t.active : t.ready}</p>
+         <p>{t.status}: {temporaryBoost ? t.active : t.ready}</p>
         <button 
           onClick={activateTemporaryBoost}
           disabled={clicks < 5000 || temporaryBoost}
@@ -119,7 +119,7 @@ export default function ShopSection({ state, actions, t, formatNumber }) {
           <div>
             <h4>{t.megaClick}</h4>
             <p>{t.level}: {skills.megaClick.level}</p>
-            <p>Puissance: {formatNumber(skills.megaClick.power)}</p>
+            <p>{t.power}: {formatNumber(skills.megaClick.power)}</p>
             <button 
               onClick={() => upgradeSkill('megaClick')}
               disabled={clicks < skills.megaClick.cost}
