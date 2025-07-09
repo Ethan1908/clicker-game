@@ -480,7 +480,7 @@ export default function useClickerGame() {
     state: {
       clicks, clickPower, autoClickers, darkMode, temporaryBoost,
       prestigeLevel, prestigePoints, upgrades, investments, skills,
-      language // <-- AJOUTE cette ligne !
+      language
     },
     actions,
     formatNumber,
